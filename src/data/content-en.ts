@@ -1,0 +1,63 @@
+export const contentEN = {
+  part1: {
+    title: "Why Would a Phone Company Make Cars?",
+    subtitle: "Xiaomi's Rise & China's EV Revolution",
+    narration: [
+      "In 2010, Xiaomi was founded. The model was simple: make phones at extreme value, keep profits in software and services.",
+      "A decade later, Xiaomi had 500 million connected devices and $37 billion in annual revenue. But to global auto investors, it was still just a 'cheap phone company.'",
+      "Meanwhile, something extraordinary was happening in China's electric vehicle market.",
+      "When a car becomes a smart device on four wheels, does the line between phone companies and car companies still matter?",
+    ],
+    chartTitle: "China NEV Penetration Rate",
+    chartUnit: "%",
+    timelineTitle: "Xiaomi Milestones",
+  },
+  part2: {
+    title: "Where Does the $10 Billion Bet Come From?",
+    subtitle: "Talent Crisis & Strategic Decision",
+    narration: [
+      "In early 2021, Lei Jun discovered something that kept him up at night: Xiaomi's top engineers were sending resumes to car companies.",
+      "This wasn't job-hopping. It was industry gravity.",
+      "Lei Jun made a decision: spend 75 days interviewing 200 auto industry experts.",
+      "Then he walked into the boardroom: 'This requires 65 billion yuan and 10 years. Not a penny less, not a year less.'",
+    ],
+    talentFlowTitle: "Talent Flow Trend",
+    investmentTitle: "Auto Investment Comparison (Billion CNY)",
+    destination: "Xiaomi Auto",
+  },
+  part3: {
+    title: "How They Fought the Battle",
+    subtitle: "Product Strategy & Market Miracle",
+    narration: [
+      "They assembled a 4,000-person car team — 3-4x the industry average for similar projects.",
+      "The SU7's design was deliberately rounded — data showed female users preferred it.",
+      "The pricing debate lasted 6 months. ¥199,000 or ¥215,900?",
+      "27 minutes after the launch event ended, 100,000 orders were confirmed.",
+    ],
+    specTitle: "SU7 vs Model 3",
+    balanceTitle: "Pricing Balance",
+    balanceLeft: "Performance",
+    balanceRight: "Competition",
+    counterTitle: "The 27-Minute Miracle",
+    ordersLabel: "Orders",
+    timeLabel: "Minutes",
+  },
+  part4: {
+    title: "This Isn't Just Xiaomi's Story",
+    subtitle: "Industry Transformation in the Smart Era",
+    narration: [
+      "Xiaomi's success proved one thing: in the smart era, the ticket to the auto industry is no longer a century of manufacturing experience.",
+      "Today, over 50 Chinese tech and consumer electronics companies are entering the auto supply chain.",
+      "The real question isn't 'Can Xiaomi survive?' — it's: when the moat changes, who owns pricing power?",
+    ],
+    ecosystemTitle: "Person · Car · Home Ecosystem",
+    ecosystemCenter: "Xiaomi",
+    mapTitle: "Chinese Auto Global Expansion",
+    endingLines: [
+      "This isn't just one company's story",
+      "It's a turning point for an entire era",
+      "Person · Car · Home — not a slogan, but the only way forward",
+    ],
+    subscribeText: "Subscribe · Learn More",
+  },
+};

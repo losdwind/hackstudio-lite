@@ -7,10 +7,17 @@
   "private": true,
   "dependencies": {
     "@remotion/cli": "4.0.448",
+    "@remotion/google-fonts": "4.0.448",
+    "@remotion/light-leaks": "4.0.448",
+    "@remotion/media": "4.0.448",
+    "@remotion/tailwind-v4": "4.0.448",
+    "@remotion/transitions": "4.0.448",
+    "@turf/turf": "^7.3.4",
+    "@types/mapbox-gl": "^3.5.0",
+    "mapbox-gl": "^3.21.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.448",
-    "@remotion/tailwind-v4": "4.0.448",
     "tailwindcss": "4.0.0"
   },
   "devDependencies": {
