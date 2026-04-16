@@ -9,6 +9,7 @@
     "@remotion/captions": "4.0.448",
     "@remotion/cli": "4.0.448",
     "@remotion/google-fonts": "4.0.448",
+    "@remotion/lambda": "4.0.448",
     "@remotion/light-leaks": "4.0.448",
     "@remotion/media": "4.0.448",
     "@remotion/tailwind-v4": "4.0.448",

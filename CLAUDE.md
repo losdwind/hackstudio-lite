@@ -11,7 +11,24 @@ This channel decodes global industries from a China perspective. Not just what i
 - TTS: MiniMax T2A v2 (speech-2.8-hd) with word-level subtitle timestamps + `voice_modify` for passionate delivery
 - Transcription: OpenAI Whisper (split long audio into ~15-min chunks, language=zh)
 - Video analysis: video-describe-fast skill (Llama 4 Scout via OpenRouter — NOT Qwen which leaks chain-of-thought)
-- Design system: `design.md` — "Precision Editorial" rules (no borders, glassmorphism, gradient accents)
+- Design system: `design.md` — "Precision Editorial" rules (MUST follow for ALL components)
+
+## Design System Compliance (NON-NEGOTIABLE)
+
+Every component in every video MUST follow `design.md`. This is not optional. Before writing or modifying any component, read `design.md` first. After implementation, audit every component against it. The key rules:
+
+- **No solid borders** — Use tonal shifts, negative space, radial gradients. If a border is absolutely required, use ghost border: `COLORS.ghostBorder` (rgba(90,65,54,0.15))
+- **No pure black** — Vignettes and shadows use tinted `rgba(19,19,19,...)` (surface color), never `rgba(0,0,0,...)`
+- **No default shadows** — Use ambient glows only: 60-80px blur, 6-10% opacity, tinted color. See `SHADOWS` in `colors.ts`
+- **Glassmorphism** — Floating cards use `COLORS.glassSurface` + `backdrop-blur: 20-40px` (minimum 20px)
+- **Colors from tokens** — Never hardcode hex/rgba values. Always use `COLORS.*`, `GRADIENTS.*`, `SHADOWS.*` from `shared/lib/colors.ts`
+- **Gradients at 135deg** — All gradient accents use 135-degree angle (`GRADIENTS.primaryCTA`)
+- **Corner radius minimum** — Main containers: 0.75rem (12px) or 1rem (16px). No sharp corners.
+- **Typography** — Plus Jakarta Sans for display/headline, Inter for body/labels, Noto Sans SC for CJK. Use `getDisplayFont(lang)` and `getBodyFont(lang)` helpers.
+- **Ecosystem nodes** — Circular with tertiary (#9DCAFF) outer glow via `SHADOWS.nodeGlow`
+- **Surface hierarchy** — L1 #131313, L2 #1C1B1B, L3 #2A2A2A, L4 #393939. Use `COLORS.surface*` tokens.
+
+Run a design audit after every component batch: check for hardcoded colors, solid borders, wrong blur values, wrong gradient angles, pure black usage.
 
 ## Research Rules (THE most important phase)
 
