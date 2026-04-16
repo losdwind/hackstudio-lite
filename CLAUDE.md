@@ -8,9 +8,9 @@ This channel decodes global industries from a China perspective. Not just what i
 
 ## Stack
 - Remotion 4.0.448, React 19, TailwindCSS v4, TypeScript
-- TTS: MiniMax T2A v2 (speech-2.8-hd) with word-level subtitle timestamps
+- TTS: MiniMax T2A v2 (speech-2.8-hd) with word-level subtitle timestamps + `voice_modify` for passionate delivery
 - Transcription: OpenAI Whisper (split long audio into ~15-min chunks, language=zh)
-- Video analysis: video-describe-fast skill (OpenRouter API)
+- Video analysis: video-describe-fast skill (Llama 4 Scout via OpenRouter — NOT Qwen which leaks chain-of-thought)
 - Design system: `design.md` — "Precision Editorial" rules (no borders, glassmorphism, gradient accents)
 
 ## Research Rules (THE most important phase)
@@ -79,34 +79,44 @@ Phase 1: Research (see Research Rules above)
   → Build research dossier: transcript.md, facts.md, perspectives.md, visuals.md
   → Save everything to research/<slug>/
 
+Phase 1.5: Video Concept (BEFORE research)
+  → Develop the editorial angle first: what's the gap between Chinese and Western narratives?
+  → Write video-concept.md with title, tone, part structure, and key story beats
+  → NEVER start research or asset analysis without knowing what story you're telling
+
 Phase 2: Script
   Transcript + research → Write bilingual video script
-  → Structure into 4 Parts (sections), 5-6 narration lines each
+  → Structure into N Parts (typically 4-5), 7-10 narration lines each
+  → Narration must sound SPOKEN, not written: short sentences, no em dashes, no semicolons, no parentheses
   → Create content-cn.ts / content-en.ts with all text
   → Create chart-data.ts with verified data for visualizations
 
 Phase 3: B-Roll Sourcing
   → Browse official YouTube/Bilibili channels (NEVER generic search)
-  → Download with yt-dlp, analyze with video-describe-fast
-  → Create broll-manifest.ts — zero repetition, no text frames
+  → Download with yt-dlp, analyze with video-describe-fast (use Llama 4 Scout model)
+  → Save .analysis.md files BESIDE each video file in public/<slug>/videos/
+  → Create broll-manifest.ts following the B-Roll Allocation Rules below
   → Place videos in public/<slug>/videos/
 
 Phase 4: TTS Generation
-  → Run: bun run scripts/generate-tts.ts
+  → Run: bun run scripts/generate-tts.ts --video <slug>
+  → IMPORTANT: verify PARTS array in generate-tts.ts matches the actual part count
   → Generates per-part audio + word-level alignment timestamps
   → Creates alignment-manifest.ts + audio files in public/<slug>/audio/
   → Audio-driven timeline: all sequence durations computed from audio lengths
 
 Phase 5: Build Remotion Components
-  → Animation overlays (charts, diagrams, maps) in components/part{1-4}/
+  → Animation overlays (charts, diagrams, maps) in components/part{1..N}/
   → Part orchestrators pass data to shared PartRenderer
   → MasterComposition assembles parts with TransitionSeries
   → Register in index.tsx, add to Root.tsx
+  → Verify design.md compliance: no borders, correct colors, correct blur values
 
 Phase 6: Preview & Render
   → bun run dev (Remotion Studio, press Play for audio)
   → bunx remotion render <CompositionId>-CN --codec=h264
   → bunx remotion render <CompositionId>-EN --codec=h264
+  → For Mapbox maps: add --gl=angle --concurrency=1
 ```
 
 ## Project Structure (Multi-Video)
@@ -125,7 +135,7 @@ src/
 └── videos/
     └── <slug>/           # One folder per video (e.g. xiaomi-su7)
         ├── index.tsx     # Exports <Folder> of Compositions for this video
-        ├── components/   # MasterComposition + part1-4/ with Part + animation overlays
+        ├── components/   # MasterComposition + part1-N/ with Part + animation overlays
         └── data/         # content-cn/en, broll-manifest, audio/alignment manifests, chart-data
 
 public/
@@ -139,7 +149,7 @@ scripts/                  # generate-tts.ts, validate-broll.ts
 
 ### Adding a New Video
 
-1. Create dirs: `mkdir -p src/videos/<slug>/{components/part{1,2,3,4},data}` and `mkdir -p public/<slug>/{audio/{cn,en},videos}`
+1. Create dirs: `mkdir -p src/videos/<slug>/{components/part{1,2,3,4,5},data}` and `mkdir -p public/<slug>/{audio/{cn,en},videos}`
 2. Create data files in `src/videos/<slug>/data/`:
    - `content-cn.ts` / `content-en.ts` — narration text, titles, chart labels
    - `broll-manifest.ts` — B-roll assignments (paths: `<slug>/videos/...`)
@@ -157,7 +167,21 @@ scripts/                  # generate-tts.ts, validate-broll.ts
 - **Type interfaces live in shared** — `WordTiming`, `LineTiming`, `PartAlignment` in `src/shared/lib/alignment-types.ts`.
 - **Each video's index.tsx is the composition registry** — defines all `<Composition>` entries wrapped in a `<Folder>`.
 - **Audio-driven timeline** — sequence durations derived from TTS audio lengths, never hardcoded.
-- **Every sequence gets narration** — including over animation segments. No silent segments.
+- **Every sequence gets narration** — including over animation segments. NO SILENT SEGMENTS EVER.
+- **No silent title cards** — part titles render as fade-in/fade-out overlays on the FIRST narration line (`showTitle: true`), never as separate silent sequences. Narration never stops flowing.
+- **Animation timing is adaptive** — all overlays use `useTimeScale(designedDuration)` from `shared/lib/timing.ts` so keyframes scale proportionally to the actual sequence duration. Never hardcode absolute frame numbers.
+- **VideoBackground passes startFrom** — `trimBefore={Math.round(startFrom * fps)}` must be on the `<Video>` component. Without this, all clips play from 0:00 regardless of manifest.
+- **Video dim logic** — plain narration sequences show vivid video (overlay 0.25), sequences with Overlay/showTitle dim to 0.7+. The `effectiveOpacity` is computed automatically in PartRenderer.
+
+## B-Roll Allocation Rules (CRITICAL)
+
+These rules prevent visual repetition and maintain production quality:
+
+1. **Zero time overlap** — No two sequences in the ENTIRE video may use overlapping time ranges from the same source file. Use 40s allocation slots and verify with the overlap-check script.
+2. **No adjacent same-file** — Within each part, consecutive sequences must use different source files for visual variety.
+3. **Skip logo splashes** — If a source video has a broadcaster logo splash at the start (e.g., BBC at 0-5s), set startFrom AFTER it. Small corner watermarks throughout are acceptable.
+4. **Verify with script** — After writing broll-manifest.ts, run the overlap verification script to confirm zero overlaps and zero adjacent violations.
+5. **Every brollKey must be unique** — Each narration sequence references its own brollKey. Never share a brollKey between two sequences.
 
 ## Production Rules (Quick Reference)
 
@@ -165,6 +189,19 @@ Full details in `.claude/skills/ai-video-from-script/SKILL.md`.
 
 - **B-roll**: Official channels only, analyze with video-describe-fast, zero clip repetition, no text frames as backgrounds
 - **Captions**: Inside each Sequence (not global), word-by-word highlighting synced to audio
-- **TTS**: One audio file per part (not per line) for natural prosody, word-level timestamps for captions
+- **TTS**: One audio file per part (not per line) for natural prosody, word-level timestamps for captions. Use `voice_modify: { intensity: 40, pitch: 15, timbre: 10 }` for passionate delivery.
+- **Narration style**: Must sound SPOKEN not written. Short sentences. Periods and commas only. No em dashes, semicolons, colons, or parentheses. Contractions are good. Think: explaining to a friend over coffee.
 - **Transcription**: For audio >25MB, split into ~15-min mp3 chunks (mono 16kHz) with ffmpeg, transcribe each via OpenAI Whisper (language=zh), combine with timestamps
-- **Design**: No solid borders, glassmorphism on cards, gradient accents, ambient glows, Plus Jakarta Sans headlines + Inter body + Noto Sans SC for CJK
+- **Design**: Follow `design.md` strictly — no solid borders, glassmorphism on cards (`COLORS.glassSurface`), gradient accents at 135deg, ambient glows (60-80px blur, 6-10% opacity, tinted not pure black), Plus Jakarta Sans headlines + Inter body + Noto Sans SC for CJK, backdrop-blur minimum 20px
+- **Pre-flight checks**: Before TTS generation, verify: (1) content line count matches sequence count per part, (2) every brollKey exists in manifest, (3) alignment/audio manifest line counts match, (4) generate-tts.ts PARTS array includes all parts, (5) design.md compliance across all components
+
+## Lessons Learned (from xiaomi-su7 production)
+
+Hard-won patterns from the first full production run:
+
+1. **Concept before research** — Develop the video idea and editorial angle BEFORE doing any research or asset analysis. You can't research effectively without knowing what story you're telling.
+2. **Depth over breadth** — Go deep on personal psychology, emotional stakes, and human drama rather than broad data coverage. The channel's identity works when viewers FEEL the stakes.
+3. **The A+C hybrid** — Lei Jun's personal journey (A) as the emotional spine + Chinese/Western narrative gap (C) as the tension engine. Each part opens with what the West assumes, then reveals Chinese reality.
+4. **Research dossier is the foundation** — `facts.md` (verified data), `perspectives.md` (CN vs EN narrative gaps), `visuals.md` (per-part B-roll + animation mapping) must all be complete before scripting.
+5. **Video analysis saves beside videos** — `.analysis.md` files live next to their `.mp4` files in `public/<slug>/videos/`, not in the research folder.
+6. **Kill your darlings** — Delete outdated research files aggressively. Old 4-part section files, old video analyses with wrong models — they cause confusion. Keep only current, verified data.

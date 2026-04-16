@@ -1,54 +1,147 @@
-# Remotion video
+# HackStudio Pro
 
-<p align="center">
-  <a href="https://github.com/remotion-dev/logo">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/remotion-dev/logo/raw/main/animated-logo-banner-dark.apng">
-      <img alt="Animated Remotion Logo" src="https://github.com/remotion-dev/logo/raw/main/animated-logo-banner-light.gif">
-    </picture>
-  </a>
-</p>
+**AI-powered video production studio that turns research into broadcast-ready YouTube documentaries — in two languages, from a single codebase.**
 
-Welcome to your Remotion project!
+Built on [Remotion](https://remotion.dev), React, and a constellation of AI services, HackStudio Pro is an end-to-end pipeline that takes you from raw source material to fully rendered, captioned, narrated video — without touching a traditional video editor.
 
-## Commands
+https://github.com/user-attachments/assets/placeholder
 
-**Install Dependencies**
+## Why This Exists
 
-```console
-npm i
+Making one high-quality documentary video takes most creators weeks. Making it in two languages doubles the work. Scaling to 100+ videos? Impossible by hand.
+
+HackStudio Pro collapses that timeline by treating video production as **a software problem**:
+
+- **Scripts are TypeScript data** — not timelines in Premiere
+- **Timing is computed from audio** — not dragged on a scrubber
+- **Animations are React components** — version-controlled, composable, reusable
+- **Bilingual output is a prop change** — `lang="cn"` or `lang="en"`, same pipeline
+
+One `bun run dev` and you're previewing. One `remotion render` and you have an `.mp4`.
+
+## The Pipeline
+
+```
+   Research         Script          B-Roll          TTS            Build           Render
+  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+  │ YouTube  │    │ Bilingual│    │ Official │    │ MiniMax │    │ React   │    │ Remotion │
+  │ Bilibili │    │ CN + EN  │    │ channels │    │ T2A v2  │    │ comps + │    │ h264    │
+  │ Reddit   │───>│ scripts  │───>│ analyzed │───>│ word-   │───>│ data-   │───>│ .mp4    │
+  │ WeChat   │    │ as .ts   │    │ frame by │    │ level   │    │ driven  │    │ CN + EN │
+  │ Xueqiu   │    │ data     │    │ frame    │    │ timing  │    │ timeline│    │         │
+  │ Twitter  │    │          │    │          │    │         │    │         │    │         │
+  │ Whisper  │    │          │    │          │    │         │    │         │    │         │
+  │ +10 more │    │          │    │          │    │         │    │         │    │         │
+  └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+       AI              AI             AI             AI           Code            Code
 ```
 
-**Start Preview**
+### Phase 1 — Research
 
-```console
-npm run dev
+AI agents scour 17+ platforms — YouTube, Reddit, Bilibili, WeChat, Xueqiu, Twitter/X, XiaoHongShu, Weibo, and more — gathering sources across both Chinese and English ecosystems. Every claim gets bilingual triangulation: 3+ independent sources spanning both languages. Primary sources (interviews, filings, official posts) always come first.
+
+### Phase 2 — Script
+
+Research becomes structured TypeScript — `content-cn.ts` and `content-en.ts` with narration lines, section titles, and chart labels. Data for visualizations lives in `chart-data.ts` with source citations.
+
+### Phase 3 — B-Roll Sourcing
+
+Videos are downloaded from official channels only (never generic stock footage), then analyzed frame-by-frame with AI vision models. A manifest ensures zero clip repetition across the entire video.
+
+### Phase 4 — TTS Generation
+
+```bash
+bun run scripts/generate-tts.ts --video xiaomi-su7
 ```
 
-**Render video**
+MiniMax T2A v2 generates natural-sounding voiceover with **word-level timestamps** — not sentence-level, *word-level*. Every subtitle highlights in perfect sync with the spoken audio.
 
-```console
-npx remotion render
+### Phase 5 — Build
+
+React components render animated data visualizations (charts, diagrams, maps, timelines) that play over B-roll backgrounds with glassmorphism captions. The entire timeline is **audio-driven** — sequence durations are computed from TTS output, never hardcoded.
+
+### Phase 6 — Render
+
+```bash
+bunx remotion render XiaomiSU7-CN --codec=h264   # Chinese version
+bunx remotion render XiaomiSU7-EN --codec=h264   # English version
 ```
 
-**Upgrade Remotion**
+## Architecture
 
-```console
-npx remotion upgrade
+Every video is self-contained. Shared rendering infrastructure is reused across all videos.
+
+```
+src/
+├── shared/                 # Reusable across ALL videos
+│   ├── components/         # PartRenderer, SubtitleOverlay, VideoBackground...
+│   ├── lib/                # colors, fonts, timing, audio-driven duration math
+│   └── schemas/            # VideoSchema (lang: "cn" | "en")
+└── videos/
+    └── xiaomi-su7/         # One folder per video
+        ├── index.tsx       # Composition registry
+        ├── components/     # Part orchestrators + animated overlays
+        └── data/           # Scripts, B-roll manifest, audio alignment, chart data
+
+public/<slug>/              # Assets namespaced per video
+    ├── audio/{cn,en}/      # TTS .mp3 files
+    └── videos/             # B-roll .mp4 files
 ```
 
-## Docs
+Adding a new video = new folder + data files + one import in `Root.tsx`. The shared components handle the rest.
 
-Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).
+## Key Technical Decisions
 
-## Help
+| Decision | Why |
+|----------|-----|
+| **One audio file per part** (not per line) | Natural prosody — MiniMax produces better speech when it sees the full paragraph context |
+| **Word-level timestamps** from MiniMax | Subtitle highlighting syncs to actual speech, not estimated timing |
+| **Audio-driven timeline** | Sequence durations are *computed* from TTS output — change the script and timing updates automatically |
+| **TypeScript data, not JSON** | Type safety, imports, and IDE autocomplete for all content and manifests |
+| **React components for animations** | Version-controlled, composable, testable — no After Effects project files |
+| **B-roll validation script** | `bun run validate-broll` catches clip repetition, missing files, and time-range overlaps before render |
 
-We provide help on our [Discord server](https://discord.gg/6VzzNDwUwV).
+## Design System — "Precision Editorial"
 
-## Issues
+A cinematic visual language inspired by modern data journalism:
 
-Found an issue with Remotion? [File an issue here](https://github.com/remotion-dev/remotion/issues/new).
+- **No borders** — depth through tonal layering and ambient glows
+- **Glassmorphism** — frosted-glass cards with `backdrop-blur` over B-roll
+- **Gradient accents** — `#FFB595` to `#FF6700` for CTAs and data highlights
+- **Typography hierarchy** — Plus Jakarta Sans (headlines) + Inter (body) + Noto Sans SC (CJK)
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Video engine | Remotion 4.0 |
+| UI | React 19, TailwindCSS v4 |
+| Language | TypeScript (strict) |
+| TTS | MiniMax T2A v2 (speech-2.8-hd) |
+| Transcription | OpenAI Whisper |
+| Video analysis | OpenRouter vision models |
+| Research | AI agents across 17+ platforms |
+| Runtime | Bun |
+
+## Quick Start
+
+```bash
+# Install dependencies
+bun install
+
+# Preview in Remotion Studio
+bun run dev
+
+# Generate TTS for a video
+bun run scripts/generate-tts.ts --video xiaomi-su7
+
+# Validate B-roll assignments
+bun run scripts/validate-broll.ts
+
+# Render final video
+bunx remotion render XiaomiSU7-CN --codec=h264
+```
 
 ## License
 
-Note that for some entities a company license is needed. [Read the terms here](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md).
+UNLICENSED — Private project.
