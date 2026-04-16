@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackStudio Pro — AI Video Production Studio</title>
+  <meta name="description" content="AI-powered video production studio that turns research into broadcast-ready YouTube documentaries in two languages, from a single codebase.">
+  <meta property="og:title" content="HackStudio Pro — AI Video Production Studio">
+  <meta property="og:description" content="Turn research into broadcast-ready YouTube documentaries with AI. Bilingual CN/EN output from a single codebase.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================
+       Design System: "Precision Editorial"
+       Tokens from design.md + colors.ts
+       ============================================ */
+    :root {
+      /* Surface Hierarchy */
+      --surface:              #131313;
+      --surface-container-low:#1C1B1B;
+      --surface-container-high:#2A2A2A;
+      --surface-bright:       #393939;
+
+      /* Primary */
+      --primary:              #FFB595;
+      --primary-container:    #FF6700;
+
+      /* Secondary */
+      --secondary:            #C6C6C7;
+
+      /* Tertiary (Ecosystem Glow) */
+      --tertiary:             #9DCAFF;
+      --tertiary-bright:      #019CFF;
+
+      /* Text */
+      --text-primary:         #FFFFFF;
+      --text-secondary:       #C6C6C7;
+      --text-muted:           #6B7280;
+
+      /* Glassmorphism */
+      --glass-surface:        rgba(28, 27, 27, 0.7);
+      --ghost-border:         rgba(90, 65, 54, 0.15);
+
+      /* Gradients */
+      --gradient-cta:         linear-gradient(135deg, #FFB595, #FF6700);
+      --gradient-surface:     radial-gradient(ellipse at 50% 30%, #1C1B1B 0%, #131313 70%);
+
+      /* Shadows (ambient glows, never standard drop shadows) */
+      --shadow-ambient:       0 0 60px rgba(19, 19, 19, 0.08);
+      --shadow-primary-glow:  0 0 60px rgba(255, 103, 0, 0.10);
+      --shadow-node-glow:     0 0 15px rgba(157, 202, 255, 0.4);
+      --shadow-hero-glow:     0 0 80px rgba(255, 181, 149, 0.10);
+
+      /* Typography */
+      --font-display: 'Plus Jakarta Sans', sans-serif;
+      --font-body:    'Inter', sans-serif;
+      --font-cjk:     'Noto Sans SC', sans-serif;
+
+      /* Spacing */
+      --space-xs:  0.5rem;
+      --space-sm:  0.75rem;
+      --space-md:  1rem;
+      --space-lg:  1.5rem;
+      --space-xl:  2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4rem;
+      --space-4xl: 6rem;
+
+      /* Radius (no sharp corners) */
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+    }
+
+    /* ============================================
+       Reset & Base
+       ============================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--surface);
+      color: var(--text-secondary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ============================================
+       Layout
+       ============================================ */
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 var(--space-lg);
+    }
+
+    section {
+      padding: var(--space-4xl) 0;
+      position: relative;
+    }
+
+    /* Tonal shift separators — NO borders */
+    section:nth-child(even) {
+      background: var(--surface-container-low);
+    }
+
+    /* ============================================
+       Typography
+       ============================================ */
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; }
+    h2 { font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 700; margin-bottom: var(--space-lg); }
+    h3 { font-size: 1.25rem; font-weight: 600; }
+
+    p { max-width: 640px; }
+
+    a {
+      color: var(--tertiary-bright);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    a:hover { color: var(--tertiary); }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.875em;
+      background: var(--surface-container-high);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      color: var(--primary);
+    }
+
+    /* ============================================
+       Hero
+       ============================================ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--gradient-surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glow behind hero */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(255, 103, 0, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      padding: var(--space-xl);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      background: var(--glass-surface);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xl);
+    }
+
+    .hero-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary-container);
+      box-shadow: 0 0 12px rgba(255, 103, 0, 0.5);
+    }
+
+    .hero h1 {
+      margin-bottom: var(--space-lg);
+    }
+
+    .hero h1 .gradient-text {
+      background: var(--gradient-cta);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto var(--space-2xl);
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ============================================
+       Buttons (Kinetic Style)
+       ============================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: 0.75rem 1.75rem;
+      border-radius: var(--radius-md);
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: var(--gradient-cta);
+      color: var(--surface);
+      box-shadow: var(--shadow-primary-glow);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 80px rgba(255, 103, 0, 0.18);
+      color: var(--surface);
+    }
+
+    .btn-secondary {
+      background: var(--surface-bright);
+      color: var(--text-primary);
+      box-shadow: inset 0 0 0 1px var(--ghost-border);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-container-high);
+      color: var(--text-primary);
+    }
+
+    /* ============================================
+       Stats Row
+       ============================================ */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-3xl);
+      margin-top: var(--space-3xl);
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-value .accent {
+      color: var(--primary-container);
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ============================================
+       Pipeline
+       ============================================ */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-2xl);
+    }
+
+    .pipeline-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pipeline-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hero-glow);
+    }
+
+    /* Radial glow per card */
+    .pipeline-card::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .pipeline-card:hover::before {
+      opacity: 1;
+    }
+
+    .pipeline-card:nth-child(1)::before,
+    .pipeline-card:nth-child(2)::before { background: radial-gradient(circle, rgba(157, 202, 255, 0.12) 0%, transparent 70%); }
+    .pipeline-card:nth-child(3)::before,
+    .pipeline-card:nth-child(4)::before { background: radial-gradient(circle, rgba(255, 181, 149, 0.12) 0%, transparent 70%); }
+    .pipeline-card:nth-child(5)::before,
+    .pipeline-card:nth-child(6)::before { background: radial-gradient(circle, rgba(255, 103, 0, 0.12) 0%, transparent 70%); }
+
+    .pipeline-number {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: var(--space-sm);
+    }
+
+    .pipeline-card h3 {
+      margin-bottom: var(--space-sm);
+    }
+
+    .pipeline-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .pipeline-tag {
+      display: inline-block;
+      margin-top: var(--space-md);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.25rem 0.6rem;
+      border-radius: 100px;
+      background: rgba(157, 202, 255, 0.08);
+      color: var(--tertiary);
+    }
+
+    .pipeline-tag.warm {
+      background: rgba(255, 181, 149, 0.08);
+      color: var(--primary);
+    }
+
+    /* ============================================
+       Architecture
+       ============================================ */
+    .arch-section .section-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--primary);
+      margin-bottom: var(--space-sm);
+    }
+
+    .arch-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2xl);
+      margin-top: var(--space-2xl);
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .arch-layout { grid-template-columns: 1fr; }
+    }
+
+    .arch-tree {
+      background: var(--surface-container-high);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+      overflow-x: auto;
+    }
+
+    .arch-tree .dir  { color: var(--tertiary); }
+    .arch-tree .file { color: var(--text-secondary); }
+    .arch-tree .comment { color: var(--text-muted); font-style: italic; }
+
+    .arch-principles {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .principle {
+      background: var(--glass-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+    }
+
+    .principle h3 {
+      font-size: 1rem;
+      margin-bottom: var(--space-xs);
+    }
+
+    .principle p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ============================================
+       Tech Stack
+       ============================================ */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-2xl);
+    }
+
+    .stack-item {
+      background: var(--surface-container-high);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      transition: background 0.2s ease;
+    }
+
+    .stack-item:hover {
+      background: var(--surface-bright);
+    }
+
+    .stack-layer {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stack-tech {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1.05rem;
+    }
+
+    /* ============================================
+       Design System Showcase
+       ============================================ */
+    .design-showcase {
+      margin-top: var(--space-2xl);
+    }
+
+    .design-rules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .design-rule {
+      position: relative;
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .design-rule::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      padding: 1px;
+      background: linear-gradient(135deg, var(--ghost-border), transparent 60%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .design-rule-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      margin-bottom: var(--space-md);
+    }
+
+    .design-rule-icon.glow {
+      background: rgba(157, 202, 255, 0.08);
+      box-shadow: var(--shadow-node-glow);
+    }
+
+    .design-rule-icon.warm {
+      background: rgba(255, 181, 149, 0.08);
+      box-shadow: var(--shadow-primary-glow);
+    }
+
+    .design-rule h3 {
+      margin-bottom: var(--space-xs);
+      font-size: 1.05rem;
+    }
+
+    .design-rule p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Color swatches */
+    .color-strip {
+      display: flex;
+      gap: 2px;
+      margin-top: var(--space-2xl);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      height: 64px;
+    }
+
+    .color-swatch {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      padding: var(--space-xs);
+      position: relative;
+    }
+
+    .color-swatch span {
+      font-size: 0.65rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* ============================================
+       Decisions Table
+       ============================================ */
+    .decisions-list {
+      margin-top: var(--space-2xl);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: var(--space-xl);
+      padding: var(--space-lg) var(--space-xl);
+      border-radius: var(--radius-md);
+      transition: background 0.2s ease;
+    }
+
+    /* Alternating tonal shifts — no dividers */
+    .decision-row:nth-child(odd) {
+      background: var(--surface-container-low);
+    }
+    .decision-row:nth-child(even) {
+      background: var(--surface);
+    }
+
+    .decision-row:hover {
+      background: var(--surface-container-high);
+    }
+
+    .decision-key {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .decision-value {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 640px) {
+      .decision-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+      }
+    }
+
+    /* ============================================
+       Quick Start
+       ============================================ */
+    .quickstart-block {
+      background: var(--surface-container-high);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-top: var(--space-2xl);
+      overflow-x: auto;
+    }
+
+    .quickstart-block pre {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.88rem;
+      line-height: 2;
+      color: var(--text-secondary);
+    }
+
+    .quickstart-block .comment {
+      color: var(--text-muted);
+    }
+
+    .quickstart-block .cmd {
+      color: var(--primary);
+    }
+
+    /* ============================================
+       Footer
+       ============================================ */
+    footer {
+      padding: var(--space-3xl) 0;
+      text-align: center;
+    }
+
+    footer p {
+      max-width: none;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    footer .footer-stack {
+      display: flex;
+      gap: var(--space-xs);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: var(--space-sm);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    footer .footer-stack span {
+      opacity: 0.4;
+    }
+
+    /* ============================================
+       Ecosystem Nodes (decorative)
+       ============================================ */
+    .node {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--tertiary);
+      box-shadow: var(--shadow-node-glow);
+    }
+
+    .node.warm {
+      background: var(--primary-container);
+      box-shadow: 0 0 15px rgba(255, 103, 0, 0.35);
+    }
+
+    /* ============================================
+       Responsive
+       ============================================ */
+    @media (max-width: 640px) {
+      section { padding: var(--space-3xl) 0; }
+      .stats { gap: var(--space-xl); }
+      .stat-value { font-size: 2rem; }
+      .hero-content { padding: var(--space-md); }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== Hero ==================== -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Remotion + React 19 + AI
+      </div>
+      <h1>
+        <span class="gradient-text">HackStudio</span> Pro
+      </h1>
+      <p class="hero-subtitle">
+        AI-powered video production studio that turns research into broadcast-ready
+        YouTube documentaries &mdash; in two languages, from a single codebase.
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/losdwind/hackstudio-pro" class="btn btn-primary">
+          View on GitHub
+        </a>
+        <a href="#pipeline" class="btn btn-secondary">
+          How it works
+        </a>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">17<span class="accent">+</span></div>
+          <div class="stat-label">Research Platforms</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">2</div>
+          <div class="stat-label">Languages (CN/EN)</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Codebase</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value"><span class="accent">0</span></div>
+          <div class="stat-label">Video Editors</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Why ==================== -->
+  <section>
+    <div class="container">
+      <div class="arch-section">
+        <div class="section-label">The Problem</div>
+      </div>
+      <h2>Video production is a software problem</h2>
+      <p>
+        Making one high-quality documentary takes weeks. Doing it in two languages doubles
+        the work. Scaling to 100+ videos? Impossible by hand. HackStudio Pro collapses
+        that timeline by treating every part of the pipeline as code.
+      </p>
+      <div class="pipeline-grid" style="margin-top: var(--space-2xl);">
+        <div class="pipeline-card">
+          <h3>Scripts are TypeScript data</h3>
+          <p>Not timelines dragged in Premiere. Content lives in <code>.ts</code> files with full type safety and IDE autocomplete.</p>
+        </div>
+        <div class="pipeline-card">
+          <h3>Timing is computed from audio</h3>
+          <p>Not dragged on a scrubber. Word-level timestamps from MiniMax TTS drive the entire timeline automatically.</p>
+        </div>
+        <div class="pipeline-card">
+          <h3>Animations are React components</h3>
+          <p>Version-controlled, composable, reusable. Charts, diagrams, and maps render as JSX over B-roll backgrounds.</p>
+        </div>
+        <div class="pipeline-card">
+          <h3>Bilingual output is a prop change</h3>
+          <p><code>lang="cn"</code> or <code>lang="en"</code> &mdash; same pipeline, same components, same render command.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Pipeline ==================== -->
+  <section id="pipeline">
+    <div class="container">
+      <div class="arch-section">
+        <div class="section-label">End-to-End Pipeline</div>
+      </div>
+      <h2>From raw sources to rendered .mp4</h2>
+      <p>Six phases, fully AI-assisted. Each step feeds the next with structured data.</p>
+      <div class="pipeline-grid">
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 01</div>
+          <h3>Research</h3>
+          <p>AI agents search 17+ platforms across Chinese and English ecosystems. Every claim gets bilingual triangulation with 3+ independent sources.</p>
+          <span class="pipeline-tag">AI-Driven</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 02</div>
+          <h3>Script</h3>
+          <p>Research becomes structured TypeScript &mdash; narration lines, section titles, chart labels, and verified data points with source citations.</p>
+          <span class="pipeline-tag">AI-Driven</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 03</div>
+          <h3>B-Roll Sourcing</h3>
+          <p>Videos from official channels, analyzed frame-by-frame with AI vision models. A manifest enforces zero clip repetition across the entire video.</p>
+          <span class="pipeline-tag">AI-Driven</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 04</div>
+          <h3>TTS Generation</h3>
+          <p>MiniMax T2A v2 generates voiceover with word-level timestamps. Every subtitle highlights in perfect sync with speech.</p>
+          <span class="pipeline-tag warm">AI + Code</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 05</div>
+          <h3>Build Components</h3>
+          <p>React components render animated visualizations over B-roll with glassmorphism captions. The timeline is audio-driven, never hardcoded.</p>
+          <span class="pipeline-tag warm">Code</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 06</div>
+          <h3>Render</h3>
+          <p>One <code>remotion render</code> command outputs broadcast-ready .mp4 in both Chinese and English versions.</p>
+          <span class="pipeline-tag warm">Code</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Architecture ==================== -->
+  <section>
+    <div class="container arch-section">
+      <div class="section-label">Architecture</div>
+      <h2>Every video is self-contained</h2>
+      <p>Shared rendering infrastructure is reused across all videos. Adding a new video = new folder + data files + one import.</p>
+      <div class="arch-layout">
+        <div class="arch-tree">
+<span class="dir">src/</span>
+<span class="dir">&boxvr;&boxh;&boxh; shared/</span>               <span class="comment"># Reusable across ALL videos</span>
+<span class="file">&boxvr;   &boxvr;&boxh;&boxh; components/</span>     <span class="comment"># PartRenderer, SubtitleOverlay...</span>
+<span class="file">&boxvr;   &boxvr;&boxh;&boxh; lib/</span>            <span class="comment"># colors, fonts, timing, audio math</span>
+<span class="file">&boxvr;   &boxur;&boxh;&boxh; schemas/</span>        <span class="comment"># VideoSchema (lang: cn | en)</span>
+<span class="dir">&boxur;&boxh;&boxh; videos/</span>
+<span class="dir">    &boxur;&boxh;&boxh; xiaomi-su7/</span>     <span class="comment"># One folder per video</span>
+<span class="file">        &boxvr;&boxh;&boxh; index.tsx</span>     <span class="comment"># Composition registry</span>
+<span class="file">        &boxvr;&boxh;&boxh; components/</span>   <span class="comment"># Parts + animated overlays</span>
+<span class="file">        &boxur;&boxh;&boxh; data/</span>         <span class="comment"># Scripts, B-roll, audio, charts</span>
+
+<span class="dir">public/&lt;slug&gt;/</span>          <span class="comment"># Assets namespaced per video</span>
+<span class="file">    &boxvr;&boxh;&boxh; audio/{cn,en}/</span>  <span class="comment"># TTS .mp3 files</span>
+<span class="file">    &boxur;&boxh;&boxh; videos/</span>         <span class="comment"># B-roll .mp4 files</span>
+        </div>
+        <div class="arch-principles">
+          <div class="principle">
+            <h3><span class="node"></span>&ensp;Audio-Driven Timeline</h3>
+            <p>Sequence durations are computed from TTS output. Change the script and timing updates automatically &mdash; no manual scrubbing.</p>
+          </div>
+          <div class="principle">
+            <h3><span class="node warm"></span>&ensp;Adaptive Animation Timing</h3>
+            <p>All overlays use <code>useTimeScale()</code> so keyframes scale proportionally to the actual sequence duration.</p>
+          </div>
+          <div class="principle">
+            <h3><span class="node"></span>&ensp;TypeScript Data, Not JSON</h3>
+            <p>Type safety, imports, and IDE autocomplete for all content, manifests, and chart data.</p>
+          </div>
+          <div class="principle">
+            <h3><span class="node warm"></span>&ensp;Zero Clip Repetition</h3>
+            <p>B-roll validation ensures no two sequences share overlapping time ranges from the same source file.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Design System ==================== -->
+  <section id="design">
+    <div class="container">
+      <div class="arch-section">
+        <div class="section-label">Design System</div>
+      </div>
+      <h2>"Precision Editorial"</h2>
+      <p>A cinematic visual language inspired by modern data journalism and Xiaomi's product design precision.</p>
+
+      <div class="color-strip">
+        <div class="color-swatch" style="background: #131313;"><span>#131313</span></div>
+        <div class="color-swatch" style="background: #1C1B1B;"><span>#1C1B1B</span></div>
+        <div class="color-swatch" style="background: #2A2A2A;"><span>#2A2A2A</span></div>
+        <div class="color-swatch" style="background: #393939;"><span>#393939</span></div>
+        <div class="color-swatch" style="background: #9DCAFF;"><span>#9DCAFF</span></div>
+        <div class="color-swatch" style="background: #FFB595;"><span>#FFB595</span></div>
+        <div class="color-swatch" style="background: #FF6700;"><span>#FF6700</span></div>
+      </div>
+
+      <div class="design-showcase">
+        <div class="design-rules">
+          <div class="design-rule">
+            <div class="design-rule-icon glow">
+              <span class="node"></span>
+            </div>
+            <h3>No Borders</h3>
+            <p>Boundaries through tonal shifts, negative space, and radial gradients. Ghost borders at 15% opacity only when required for accessibility.</p>
+          </div>
+          <div class="design-rule">
+            <div class="design-rule-icon warm">
+              <span class="node warm"></span>
+            </div>
+            <h3>Glassmorphism</h3>
+            <p>Floating cards use semi-transparent surfaces with <code>backdrop-blur: 20-40px</code> over video backgrounds.</p>
+          </div>
+          <div class="design-rule">
+            <div class="design-rule-icon glow">
+              <span class="node"></span>
+            </div>
+            <h3>Ambient Glows</h3>
+            <p>No standard drop shadows. Instead: 60-80px blur, 6-10% opacity, tinted with surface color &mdash; never pure black.</p>
+          </div>
+          <div class="design-rule">
+            <div class="design-rule-icon warm">
+              <span class="node warm"></span>
+            </div>
+            <h3>135&deg; Gradient Accents</h3>
+            <p>CTAs and data highlights use a warm gradient from <code>#FFB595</code> to <code>#FF6700</code> at 135 degrees.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Stack ==================== -->
+  <section>
+    <div class="container">
+      <div class="arch-section">
+        <div class="section-label">Technology</div>
+      </div>
+      <h2>The Stack</h2>
+      <div class="stack-grid">
+        <div class="stack-item">
+          <div class="stack-layer">Video Engine</div>
+          <div class="stack-tech">Remotion 4.0</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">UI Framework</div>
+          <div class="stack-tech">React 19 + TailwindCSS v4</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">Language</div>
+          <div class="stack-tech">TypeScript (strict)</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">Text-to-Speech</div>
+          <div class="stack-tech">MiniMax T2A v2</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">Transcription</div>
+          <div class="stack-tech">OpenAI Whisper</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">Video Analysis</div>
+          <div class="stack-tech">OpenRouter Vision</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">Research</div>
+          <div class="stack-tech">17+ AI Agents</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-layer">Runtime</div>
+          <div class="stack-tech">Bun</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Key Decisions ==================== -->
+  <section>
+    <div class="container">
+      <div class="arch-section">
+        <div class="section-label">Engineering</div>
+      </div>
+      <h2>Key Decisions</h2>
+      <div class="decisions-list">
+        <div class="decision-row">
+          <div class="decision-key">One audio file per part</div>
+          <div class="decision-value">Natural prosody &mdash; MiniMax produces better speech when it sees the full paragraph context, not isolated sentences.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">Word-level timestamps</div>
+          <div class="decision-value">Subtitle highlighting syncs to actual speech timing from MiniMax, not estimated durations.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">Audio-driven timeline</div>
+          <div class="decision-value">Sequence durations are computed from TTS output. Change the script and timing updates automatically.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">TypeScript data, not JSON</div>
+          <div class="decision-value">Full type safety, imports, and IDE autocomplete for all content and manifests.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">React for animations</div>
+          <div class="decision-value">Version-controlled, composable, testable. No After Effects project files to manage.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">B-roll validation script</div>
+          <div class="decision-value">Catches clip repetition, missing files, and time-range overlaps before render.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Quick Start ==================== -->
+  <section id="quickstart">
+    <div class="container">
+      <div class="arch-section">
+        <div class="section-label">Get Started</div>
+      </div>
+      <h2>Quick Start</h2>
+      <div class="quickstart-block">
+<pre><span class="comment"># Install dependencies</span>
+<span class="cmd">bun install</span>
+
+<span class="comment"># Preview in Remotion Studio</span>
+<span class="cmd">bun run dev</span>
+
+<span class="comment"># Generate TTS for a video</span>
+<span class="cmd">bun run scripts/generate-tts.ts --video xiaomi-su7</span>
+
+<span class="comment"># Validate B-roll assignments</span>
+<span class="cmd">bun run scripts/validate-broll.ts</span>
+
+<span class="comment"># Render final video (Chinese + English)</span>
+<span class="cmd">bunx remotion render XiaomiSU7-CN --codec=h264</span>
+<span class="cmd">bunx remotion render XiaomiSU7-EN --codec=h264</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Footer ==================== -->
+  <footer>
+    <div class="container">
+      <p>HackStudio Pro &mdash; AI Video Production Studio</p>
+      <div class="footer-stack">
+        Remotion <span>&middot;</span>
+        React 19 <span>&middot;</span>
+        TypeScript <span>&middot;</span>
+        MiniMax TTS <span>&middot;</span>
+        TailwindCSS v4
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
