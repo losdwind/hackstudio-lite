@@ -6,14 +6,14 @@
  * Uses subtitle_enable to capture word-level timestamps for caption sync.
  *
  * Output:
- *   public/audio/{cn,en}/part{1-4}-full.mp3   — continuous audio per part
- *   src/data/alignment-manifest.ts             — word-level timing data
+ *   public/<video>/audio/{cn,en}/part{1-4}-full.mp3   — continuous audio per part
+ *   src/videos/<video>/data/alignment-manifest.ts      — word-level timing data
  *
  * Usage:
- *   bun run scripts/generate-tts.ts
- *   bun run scripts/generate-tts.ts --lang cn          # one language only
- *   bun run scripts/generate-tts.ts --part part2       # one part only
- *   bun run scripts/generate-tts.ts --debug            # log raw API response
+ *   bun run scripts/generate-tts.ts --video xiaomi-su7
+ *   bun run scripts/generate-tts.ts --video xiaomi-su7 --lang cn
+ *   bun run scripts/generate-tts.ts --video xiaomi-su7 --part part2
+ *   bun run scripts/generate-tts.ts --video xiaomi-su7 --debug
  *
  * Env:
  *   MINIMAX_API_KEY  (required)
@@ -23,8 +23,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { contentCN } from "../src/data/content-cn";
-import { contentEN } from "../src/data/content-en";
 
 // ── CLI Flags ────────────────────────────────────
 const args = process.argv.slice(2);
@@ -34,9 +32,45 @@ const getFlag = (name: string) => {
 };
 const hasFlag = (name: string) => args.includes(name);
 
+const videoSlug = getFlag("--video");
 const onlyLang = getFlag("--lang") as "cn" | "en" | undefined;
 const onlyPart = getFlag("--part") as string | undefined;
 const debug = hasFlag("--debug");
+
+if (!videoSlug) {
+  console.error("ERROR: --video <slug> is required. Example: --video xiaomi-su7");
+  console.error("Available videos:");
+  const ROOT = path.resolve(import.meta.dir, "..");
+  const videosDir = path.join(ROOT, "src", "videos");
+  try {
+    const dirs = await fs.readdir(videosDir);
+    for (const d of dirs) {
+      const stat = await fs.stat(path.join(videosDir, d));
+      if (stat.isDirectory()) console.error(`  --video ${d}`);
+    }
+  } catch {
+    console.error("  (no videos found)");
+  }
+  process.exit(1);
+}
+
+// ── Dynamic imports for video-specific data ─────
+const ROOT = path.resolve(import.meta.dir, "..");
+const VIDEO_DATA_DIR = path.join(ROOT, "src", "videos", videoSlug, "data");
+
+let contentCN: Record<string, { narration: string[] }>;
+let contentEN: Record<string, { narration: string[] }>;
+
+try {
+  const cnModule = await import(path.join(VIDEO_DATA_DIR, "content-cn.ts"));
+  const enModule = await import(path.join(VIDEO_DATA_DIR, "content-en.ts"));
+  contentCN = cnModule.contentCN;
+  contentEN = enModule.contentEN;
+} catch (err) {
+  console.error(`ERROR: Could not load content files from ${VIDEO_DATA_DIR}`);
+  console.error(`Make sure content-cn.ts and content-en.ts exist in src/videos/${videoSlug}/data/`);
+  process.exit(1);
+}
 
 // ── API Configuration ────────────────────────────
 const API_KEY =
@@ -62,19 +96,26 @@ if (!API_KEY) {
 const VOICE_CONFIG = {
   cn: {
     voice_id: "moss_audio_9c223de9-7ce1-11f0-9b9f-463feaa3106a",
-    speed: 0.97,
-    vol: 1,
-    pitch: 0,
+    speed: 1.03,
+    vol: 1.2,
+    pitch: 1,
     language_boost: "Chinese",
   },
   en: {
-    voice_id: "English_Insightful_Speaker",
-    speed: 0.98,
-    vol: 1,
-    pitch: 0,
+    voice_id: "English_expressive_narrator",
+    speed: 1.05,
+    vol: 1.3,
+    pitch: 2,
     language_boost: "English",
   },
 } as const;
+
+// Voice intensity/timbre modifiers for passionate delivery
+const VOICE_MODIFY = {
+  intensity: 40,  // more energetic (+30 to +60 range)
+  pitch: 15,      // brighter voice
+  timbre: 10,     // crisper articulation
+};
 
 const AUDIO_SETTING = {
   sample_rate: 32_000,
@@ -84,7 +125,6 @@ const AUDIO_SETTING = {
 };
 
 // Pronunciation overrides per language (word → phonetic alias)
-// MiniMax uses format: ["word/alias", ...]
 const PRONUNCIATIONS: Record<string, Record<string, string>> = {
   cn: {},
   en: {},
@@ -93,16 +133,16 @@ const PRONUNCIATIONS: Record<string, Record<string, string>> = {
 // ── Types ────────────────────────────────────────
 interface MiniMaxSubtitleChunk {
   text: string;
-  time_begin: number; // milliseconds
-  time_end: number; // milliseconds
-  text_begin: number; // character offset in full text
-  text_end: number; // character offset in full text
+  time_begin: number;
+  time_end: number;
+  text_begin: number;
+  text_end: number;
 }
 
 interface WordTiming {
   text: string;
-  start: number; // seconds
-  end: number; // seconds
+  start: number;
+  end: number;
 }
 
 interface LineTiming {
@@ -153,6 +193,7 @@ async function synthesizePart(
       vol: voice.vol,
       pitch: voice.pitch,
     },
+    voice_modify: VOICE_MODIFY,
     audio_setting: AUDIO_SETTING,
   };
 
@@ -203,23 +244,18 @@ async function synthesizePart(
 
     const data = body?.data as Record<string, unknown> | undefined;
 
-    // ── Extract audio (URL mode → download the file) ──
     const audioField = data?.audio;
     let audio: Buffer;
 
     if (typeof audioField === "string" && audioField.startsWith("http")) {
-      // URL mode: download the audio file
       audio = await downloadBuffer(audioField);
     } else if (typeof audioField === "string" && audioField.length > 0) {
-      // Hex mode fallback: decode hex string
       const hexData = audioField.replace(/^0x/i, "").replace(/\s+/g, "");
       audio = Buffer.from(hexData, "hex");
     } else {
       throw new Error("MiniMax returned no audio data");
     }
 
-    // ── Extract subtitle chunks ──
-    // subtitle_file can be: a URL string (to .title JSON), an inline object, or absent
     let chunks: MiniMaxSubtitleChunk[] = [];
     const subtitleField = data?.subtitle_file;
 
@@ -259,8 +295,6 @@ async function synthesizePart(
 }
 
 // ── Chunk-to-Line Mapping via character-position interpolation ──
-// MiniMax returns sentence-level chunks with character positions + timing.
-// We interpolate to find each line's start/end time.
 function mapChunksToLines(
   chunks: MiniMaxSubtitleChunk[],
   lineTexts: string[],
@@ -277,7 +311,6 @@ function mapChunksToLines(
 
   const separator = isChinese ? "" : " ";
 
-  // Build character ranges for each line in the full text
   let pos = 0;
   const lineRanges = lineTexts.map((line) => {
     const start = pos;
@@ -285,7 +318,6 @@ function mapChunksToLines(
     return { start, end: start + line.length };
   });
 
-  // Interpolate: given a character position, estimate the time (ms)
   function timeAtChar(charPos: number): number {
     for (const chunk of chunks) {
       if (charPos >= chunk.text_begin && charPos <= chunk.text_end) {
@@ -295,7 +327,6 @@ function mapChunksToLines(
         return chunk.time_begin + ratio * (chunk.time_end - chunk.time_begin);
       }
     }
-    // Before first chunk → 0; after last chunk → totalDuration
     if (charPos <= chunks[0].text_begin) return 0;
     return chunks[chunks.length - 1].time_end;
   }
@@ -305,15 +336,13 @@ function mapChunksToLines(
     const range = lineRanges[i];
     const startMs = timeAtChar(range.start);
     const endMs = timeAtChar(range.end);
-    const startTime = Math.round(startMs) / 1000; // ms → s, rounded
+    const startTime = Math.round(startMs) / 1000;
     const endTime = Math.round(endMs) / 1000;
 
-    // Build word entries from chunks that overlap this line's range
     const words: WordTiming[] = [];
     for (const chunk of chunks) {
       if (chunk.text_end <= range.start || chunk.text_begin >= range.end)
         continue;
-      // Slice the chunk text to only the part within this line
       const sliceStart = Math.max(0, range.start - chunk.text_begin);
       const sliceEnd = Math.min(
         chunk.text.length,
@@ -344,11 +373,14 @@ function getAudioDuration(filePath: string): number {
 }
 
 // ── Main ─────────────────────────────────────────
-const ROOT = path.resolve(import.meta.dir, "..");
-const OUTPUT_DIR = path.join(ROOT, "public", "audio");
-const MANIFEST_PATH = path.join(ROOT, "src", "data", "alignment-manifest.ts");
+const OUTPUT_DIR = path.join(ROOT, "public", videoSlug, "audio");
+const MANIFEST_PATH = path.join(ROOT, "src", "videos", videoSlug, "data", "alignment-manifest.ts");
 
-const PARTS = ["part1", "part2", "part3", "part4"] as const;
+console.log(`Video: ${videoSlug}`);
+console.log(`Audio output: public/${videoSlug}/audio/`);
+console.log(`Manifest: src/videos/${videoSlug}/data/alignment-manifest.ts`);
+
+const PARTS = ["part1", "part2", "part3", "part4", "part5"] as const;
 const LANGS = ["cn", "en"] as const;
 
 type PartKey = (typeof PARTS)[number];
@@ -405,7 +437,6 @@ for (const lang of langsToGenerate) {
     const { audio, chunks } = await synthesizePart(fullText, lang);
     totalCalls++;
 
-    // Write audio file
     const audioFileName = `${partKey}-full.mp3`;
     const audioPath = path.join(langDir, audioFileName);
     await fs.writeFile(audioPath, audio);
@@ -413,11 +444,9 @@ for (const lang of langsToGenerate) {
       `  Audio: ${audioFileName} (${(audio.length / 1024).toFixed(0)} KB)`
     );
 
-    // Measure actual duration
     const totalDuration = getAudioDuration(audioPath);
     console.log(`  Duration: ${totalDuration.toFixed(3)}s`);
 
-    // Map subtitle chunks to lines via character-position interpolation
     const lineTimings = mapChunksToLines(chunks, lines, isChinese, totalDuration);
     console.log(
       `  Subtitle chunks: ${chunks.length} → ${lines.length} lines`
@@ -431,12 +460,11 @@ for (const lang of langsToGenerate) {
     }
 
     manifest[lang][partKey] = {
-      file: `audio/${lang}/${audioFileName}`,
+      file: `${videoSlug}/audio/${lang}/${audioFileName}`,
       totalDuration,
       lines: lineTimings,
     };
 
-    // Small delay between API calls
     if (totalCalls < langsToGenerate.length * partsToGenerate.length) {
       await new Promise((r) => setTimeout(r, 500));
     }
@@ -448,31 +476,8 @@ const tsOutput = `// Auto-generated by scripts/generate-tts.ts — do not edit m
 // MiniMax TTS (${MODEL}) with word-level subtitle timing.
 // Generated: ${new Date().toISOString()}
 
-export interface WordTiming {
-  text: string;
-  /** Seconds from start of the part audio file */
-  start: number;
-  /** Seconds from start of the part audio file */
-  end: number;
-}
-
-export interface LineTiming {
-  /** When this sentence starts in the part audio (seconds) */
-  startTime: number;
-  /** When this sentence ends in the part audio (seconds) */
-  endTime: number;
-  /** Word-level timestamps for caption highlighting */
-  words: WordTiming[];
-}
-
-export interface PartAlignment {
-  /** Path relative to public/, e.g. "audio/cn/part1-full.mp3" */
-  file: string;
-  /** Total duration of the part audio in seconds */
-  totalDuration: number;
-  /** Per-line timing data, keyed as line1, line2, ... */
-  lines: Record<string, LineTiming>;
-}
+import type { PartAlignment } from "../../../shared/lib/alignment-types";
+export type { WordTiming, LineTiming, PartAlignment } from "../../../shared/lib/alignment-types";
 
 export const alignmentManifest: Record<
   string,

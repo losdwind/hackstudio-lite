@@ -1,0 +1,115 @@
+# Video Description: official-leijun-speech.mp4
+
+**Duration:** 5:00 | **Frames:** 100 | **Interval:** 3.0s | **Processing time:** 69.9s | **Model:** meta-llama/llama-4-scout-17b-16e-instruct
+
+## Summary
+
+This video appears to showcase Xiaomi's latest technology and innovations, including a robotic dog, smartphones, and a smart ecosystem. The video highlights the company's focus on AI, bi-inspired design, and interconnected devices, with a futuristic and sleek aesthetic. The scenes depict a vision for a future where technology seamlessly integrates into daily life, with a emphasis on intelligent cooperation and cross-platform compatibility.
+
+## Frame-by-Frame Timeline
+
+| Time | Description |
+|------|-------------|
+| 0:03 | The image shows a small white and brown dog on a leash, standing on a gray surface with a person's leg visible to the left. The dog is wearing a light blue harness and appears to be looking at something off-camera. |
+| 0:06 | A robotic quadruped is riding a skateboard on a smooth surface, showcasing its ability to balance. The robot's sleek design and dynamic pose convey a sense of advanced technology and agility. |
+| 0:09 | The image features a black background with yellow text that reads "Bio-inspired design" and "LiDAR sensor" in the center. The text is arranged as follows:  *   **Bio-inspired design** and **LiDAR sensor**: These two phrases are prominently displayed in yellow text, with "Bio-inspired design" in a larger font size than "LiDAR sensor". *   **Gesture interaction** and **Voice control**: These two phrases are written in a lighter yellow text and appear to be semi-transparent or faded, suggesting they might be secondary features or related concepts. *   **AI control algorithm for self balancing**: This phrase is also in yellow text and positioned below the main title, indicating it's a key aspect of the technology being described.  At |
+| 0:12 | The image shows a woman in a green dress and black boots standing next to a small, black, robotic dog with four legs. The robotic dog is positioned on a beige floor, with the words "Voice control" displayed in the bottom-right corner. |
+| 0:15 | The image shows a black background with yellow text that reads, "It even talks to humans!" There is also small white text at the bottom. |
+| 0:18 | The video frame shows a close-up of a black and white dog with its tongue out, appearing to pant or smile. The dog's face fills most of the frame, set against a blurred light blue background. |
+| 0:21 | The image shows a man wearing electrochromic smart glasses. He is leaning forward with his forehead resting on the glasses. |
+| 0:24 | The image shows a black background with yellow text that reads, "We are going to be replaced!" There is also small white text at the bottom. |
+| 0:27 | The image shows a close-up of a dog's face, focusing on its eyes and nose. The dog has dark brown fur around its eyes and white fur on its nose and forehead. |
+| 0:30 | The text in the image reads:  Content for demonstration purposes only. The product is not available outside of Mainland |
+| 0:33 | The image features a black background with the phrase "It's not scary at all" prominently displayed in yellow text. A small white text disclaimer is visible at the bottom left corner. |
+| 0:36 | The image shows a sleeping basset hound lying on a dog bed next to a robotic dog. The scene appears to be set indoors, possibly at night, with a dark and calm atmosphere. |
+| 0:39 | The image shows a basset hound walking towards a white rectangular object on the floor, with a dark background and blue curtains. The scene appears to be demonstrating "AloT interconectivity" with Xiaomi devices. |
+| 0:42 | The image shows a man sitting on a couch, holding and looking at a dog. The man and dog appear to be in a living room with curtains covering large windows in the background. |
+| 0:45 | The image shows a dark room with a ceiling fan and curtains covering a window. A small text at the bottom indicates the content is for demonstration purposes only and the product is not available outside of Mainland China. |
+| 0:48 | The video shows a person sitting on the floor with a robot dog. The robot dog is black and has a blue light on its head, and the person is holding a phone. |
+| 0:51 | The image features a black background with the phrase "Be friends with tomorrow" prominently displayed in yellow text. At the bottom, there is a disclaimer in small white text. |
+| 0:54 | The image features a black background with yellow text that reads, "Join us to co-develop a better tomorrow." A small white text disclaimer is located at the bottom. |
+| 0:57 | The image shows a black and brown Doberman Pinscher sitting in a tan dog bed, wearing a gold chain, next to a robotic dog. The robotic dog is black and gray, with a sleek, futuristic design, and appears to be a product demonstration. |
+| 1:00 | The image features a small, orange square with rounded corners, centered on a black background, containing a white "mi" logo. The logo is prominently displayed in the middle of the frame. |
+| 1:03 | The image shows a close-up view of metallic components, likely from a machine or engine, with a dark background and prominent lighting on the parts. The components appear to be symmetrical and have a shiny, reflective surface. |
+| 1:06 | The image depicts a collection of mechanical parts, including springs, screws, and other metallic components, suspended in mid-air against a dark background. The parts appear to be disassembled and are scattered throughout the frame, with some falling or floating downwards. |
+| 1:09 | The image shows a close-up view of a complex mechanical device or machine part, featuring various metallic components, including screws, bolts, and other hardware. The device appears to be made of metal and has a dark, industrial aesthetic. |
+| 1:12 | The image shows a close-up view of mechanical components, possibly from an engine or machine, with metallic parts and wires visible. The background is dark, emphasizing the details of the machinery. |
+| 1:15 | The image depicts a futuristic, symmetrical scene with metallic components and machinery, possibly from a sci-fi setting or a robotic mechanism. The dark background accentuates the shiny, silver parts, creating a sense of depth and technological advancement. |
+| 1:18 | The image shows a transparent, rectangular object with a teardrop-shaped void in the center and various mechanical components visible inside. The object appears to be some kind of device or machine, possibly a vacuum cleaner, with a sleek and modern design. |
+| 1:21 | The image shows a hand holding a partially disassembled black electronic device, with the internal components visible. The device appears to be a folding tablet or smartphone, with its screen and internal circuitry exposed. |
+| 1:24 | The video frame shows a hand holding a smartphone in the dark. The phone screen is black and not illuminated. |
+| 1:27 | The video frame depicts a dark, abstract scene with black and gray streaks and lines. The streaks appear to be moving across the frame, creating a sense of motion and blur. |
+| 1:30 | The video frame depicts a dark, abstract scene with streaks of white and gray. The streaks appear to be moving across the frame, creating a sense of dynamic motion. |
+| 1:33 | The image depicts a close-up view of dark gray water with gentle ripples. The water appears to be flowing over a submerged object or surface, creating a sense of movement and texture. |
+| 1:36 | The video frame shows a close-up view of a white fabric or mesh material, possibly part of a speaker or other electronic device, with a black plastic or metal border around it. The fabric appears to be tightly woven and has a smooth texture. |
+| 1:39 | The image shows a close-up of a sleek, black smartphone with four camera lenses on the back. The phone's shiny surface reflects light, and the Leica logo is visible near the bottom. |
+| 1:42 | The video shows a thin silver necklace against a white background. The bottom of the necklace is near a bouquet of flowers. |
+| 1:45 | The image depicts a vibrant firework explosion on a tablet screen, showcasing a burst of yellow, orange, and white streaks radiating from a central point against a black background. The tablet is set against a plain white backdrop. |
+| 1:48 | The image shows a close-up of a black smartphone with four camera lenses on the top left corner of the device. The phone is positioned at an angle, with the screen partially visible underneath, displaying a dark background with gold specks. |
+| 1:51 | The image shows a partial view of a smartphone's corner, with the top edge and part of the screen visible. The phone's screen displays the "LEICA" logo in white text on a black background. |
+| 1:54 | The image shows two smartphones with distinctive designs, one in gold and the other in black, both featuring a unique foldable or flip style and a prominent camera module with the "LEICA" branding. The phones are positioned at an angle, showcasing their sleek and modern designs against a plain white background. |
+| 1:57 | The image shows four views of the Xiaomi MIX Fold 3, a foldable smartphone, in different colors and configurations. The phone's sleek design and various display modes are showcased against a clean white background. |
+| 2:00 | The image shows four different views of the Xiaomi Mix Fold 3 phone, with the tagline "Vision expanded" and highlighting its co-engineering with Leica. The phone is displayed in various configurations, including open and closed positions, in black and gold colors. |
+| 2:03 | The image shows an orange square with rounded corners and the white "mi" logo in the center, set against a plain white background. |
+| 2:06 | The image shows a close-up view of a brushed metal surface, likely stainless steel, with a subtle sheen and visible scratches. The surface occupies most of the frame, with a small portion of a white background visible on the right side. |
+| 2:09 | The image shows a series of four brushed metal rectangles with varying levels of detail and transparency, arranged on a gray platform. The rectangles appear to be some kind of electronic component or device casing. |
+| 2:12 | The image shows a close-up view of the internal structure of a smartphone, with its outer casing removed to reveal the inner components. The phone's frame and internal mechanisms are visible, showcasing its sleek and modern design. |
+| 2:15 | The image shows a close-up of the corner of a metal object, possibly a phone or tablet, with a shiny metallic surface and visible screws and holes. The object is set against a blurred gray background, suggesting a product demonstration or technical illustration. |
+| 2:18 | The image shows a close-up of a white leather phone case with the "Xiaomi" logo embossed on it. The case is positioned at an angle, with another object blurred in the foreground. |
+| 2:21 | The image shows a close-up view of a metallic gray panel with a handle and a vent. The panel has a textured surface and features a small, oval-shaped vent with a diamond-patterned design at the bottom. |
+| 2:24 | The image shows a close-up view of a sleek, silver-colored object with a subtle logo or text on its surface. The object appears to be made of metal or plastic and has a smooth, reflective finish. |
+| 2:27 | The image shows a close-up view of a white leather-like surface with the word "Xiaomi" embossed on it. The surface appears to be part of a product, possibly a phone or laptop, with a metal edge visible on the left side. |
+| 2:30 | image shows a close-up view of a black and gray object with a textured surface, featuring a circular design and a gold accent. The object appears to be a product design concept, as indicated by the text "Visual for demonstration purposes only" in the bottom-left |
+| 2:33 | The image shows a close-up view of a black turntable with a gold accent on its edge. The turntable's surface features a circular indentation and a textured border. |
+| 2:36 | The image shows a close-up view of a camera lens, with a black outer ring and a copper-colored inner lens. The lens appears to be in a dark setting, with a subtle reflection visible on its surface. |
+| 2:39 | The image shows a close-up of a black circular object with two lens-like openings and white text. The object appears to be a camera or other optical device, with the lenses and text "ICA UX" visible on its surface. |
+| 2:42 | The image shows a close-up of a smartphone camera module with four lenses and the Leica logo. The camera module is black with a silver border and has the Leica logo and lens specifications printed on it. |
+| 2:45 | The image shows a sleek, silver smartphone with a prominent circular camera module on its back, featuring four lenses and the "LEICA" logo. The phone's back has a textured surface and the "Xiaomi" branding. |
+| 2:48 | The image shows a silver Xiaomi smartphone with a large circular camera module on the back, featuring four red camera lenses and the "LEICA" logo. The phone is positioned at an angle, with the camera module facing the viewer, against a gray background. |
+| 2:51 | The image shows a white smartphone with a large circular camera lens on the back, featuring the "LEICA" logo. The phone is positioned on a gray surface, with a subtle shadow effect in the background. |
+| 2:54 | The image shows a sleek, white smartphone with a prominent circular camera module on its rear, featuring the "LEICA" branding. The phone rests on a gray surface against a gradient background that transitions from dark to light gray. |
+| 2:57 | The image shows a white background with black text that reads "Xiaomi 14 Ultra" and "Lens to legend". The text indicates that the Xiaomi 14 Ultra was co-engineered with Leica. |
+| 3:00 | The image features a small, orange square with rounded corners and a white "mi" logo in the center. The logo is set against a plain white background, with no other visual elements present. |
+| 3:03 | The video frame shows a close-up of a woman with long dark hair wearing a brown shirt, looking to her left with a neutral expression. In the blurred background, a man in a black outfit stands with his hands clasped in front of him. |
+| 3:06 | The image shows a woman facing away from the camera, looking at a man and a woman playing musical instruments. The man is standing and playing a clarinet, while the woman is sitting in a chair and playing a violin. |
+| 3:09 | The image shows a man playing a clarinet and a woman playing a violin. The man is standing on the left, wearing a dark gray outfit, while the woman sits on the right, wearing a light gray shirt. |
+| 3:12 | The image shows a woman in a dark dress standing on a white surface, holding a glowing orb in her hand. She appears to be in a minimalist setting with a plain white background and a caption at the bottom that reads "in a truly intelligent world?" |
+| 3:15 | The image shows a man playing the clarinet and a woman playing the violin. The man is on the left, and the woman is on the right, both facing each other. |
+| 3:18 | The video shows a close-up of a cello's neck and strings. The cello's body is made of dark wood with a light-colored neck and bridge. |
+| 3:21 | The image shows two musicians playing instruments, with one playing a violin and the other playing a clarinet, captured from a bird's-eye view. They are positioned in front of a plain white background. |
+| 3:24 | Four people are sitting in a row on a futuristic-looking couch, playing musical instruments. They appear to be in a promotional setting for a smart ecosystem. |
+| 3:27 | The image shows a person playing a white electric guitar, with their left hand positioned on the fretboard. The person is wearing a blue shirt and has dark, curly hair. |
+| 3:30 | The image shows a group of musicians sitting on a white sectional sofa, playing various instruments. The musicians are wearing dark clothing and appear to be in a casual setting, with one holding a guitar, one a drum, and another a star-tipped wand or prop. |
+| 3:33 | The video shows a man and woman dancing while holding electric guitars. The text "Cross-platform Compatibility" is superimposed over the image. |
+| 3:36 | The image shows two men, one playing a clarinet and the other sitting beside him. The text "Capability Transformation" and "Devices will adapt to your wants" is superimposed over the image. |
+| 3:39 | The image shows two women playing traditional Chinese instruments. The woman on the left plays a guzheng, while the woman on the right plays a pipa. |
+| 3:42 | A group of seven musicians play various instruments, including a piano, cello, and wind instruments, while seated on couches and chairs or standing, against a plain white background. The musicians wear neutral-colored clothing that matches the minimalist aesthetic of the setting. |
+| 3:45 | The video shows a close-up shot of a person playing a saxophone. The person's hand is visible on the instrument's keys, with a caption at the bottom reading "but a space to infinite possibilities." |
+| 3:48 | The video shows musicians playing instruments, with a saxophone in the foreground and a violinist and cellist in the background. The musicians appear to be performing in a studio or indoor setting with a white background. |
+| 3:51 | The image shows a young girl playing a white piano, with her dark hair pulled back into a ponytail and wearing a beige sweater. In the background, several other children are seated, playing various instruments, including a flute and a cello. |
+| 3:54 | video shows a group of musicians playing various instruments, including a piano, saxophone, flute, cello, and erhu, in a large white room. A woman sits on a white beanbag chair, watching the musicians. |
+| 3:57 | The image shows a man playing a piano with a woman sitting behind him. The man is wearing a blue shirt and has short brown hair, while the woman has her dark hair in a ponytail and is wearing a beige top. |
+| 4:00 | The image shows two women playing musical instruments, with one playing a white electric bass and the other playing a violin. The text "Intelligent Cooperation" is superimposed over the image, with additional text below reading "Operating system will anticipate and serve your every intent." |
+| 4:03 | The image depicts a group of people playing various musical instruments in a large white room. The scene features a diverse ensemble of musicians seated on couches, chairs, and stools, with a caption at the bottom reading, "This is the future that we are developing for you." |
+| 4:06 | The image depicts a sleek, silver sports car with a modern design, positioned in profile against a light gray background. The car's reflection is visible on the shiny floor beneath it, accompanied by text that reads, "A life where Xiaomi EV and over 600 million devices move as you wish." |
+| 4:09 | The image shows a tablet with a keyboard and stylus, displaying a colorful screen with a clock and date. The tablet is positioned at an angle, with the keyboard and stylus placed to the left. |
+| 4:12 | The image depicts a silver car and a person on a beanbag chair amidst a minimalist white space filled with various floating objects, including laptops, robots, and other devices. The scene is accompanied by the text "Completing the 'Human x Car x Home' smart ecosystem." |
+| 4:15 | The image features a white background with the Xiaomi HyperOS logo prominently displayed in the center. The logo consists of a circular arrangement of blue dots of varying sizes, accompanied by the text "Xiaomi HyperOS" in black and blue font below it. |
+| 4:18 | The image shows a small orange square with rounded corners and the letters "mi" in white. The logo is centered on a plain white background. |
+| 4:21 | The video frame features a solid black background with white text that reads "xiaomi SU7" and "Exterior Design" in smaller font below it. The text is centered, creating a clean and minimalist visual composition. |
+| 4:24 | The video frame depicts a dark scene with a small strip of light at the bottom, suggesting a landscape or outdoor setting at night or in low-light conditions. The image is extremely dark, making details difficult to discern. |
+| 4:27 | The image shows a dark scene with a curved object illuminated by a light source, creating a stark contrast between light and shadow. The object's details are obscured by the darkness, with only a few lines and shapes visible. |
+| 4:30 | The video frame depicts a dark background with a central, vertical streak of sparkling white light that resembles ripples or reflections on water. The streak is denser in the middle and tapers off towards the top and bottom. |
+| 4:33 | The image shows a darkened, sleek vehicle with illuminated white lines tracing its body, primarily highlighting the side and rear sections. The background is completely black, emphasizing the car's design. |
+| 4:36 | The image shows a dark scene with a red triangle glowing on the left side and white streaks on the right. A small text at the bottom reads, "This product is not for sale but only for demonstration." |
+| 4:39 | The image shows a dark silhouette of a car parked near a body of water at dusk or dawn, with mountains in the background. The sky transitions from dark blue to orange, indicating the time of day. |
+| 4:42 | The image shows a darkened, teal-colored car parked near a body of water at dusk or dawn, with mountains in the background. The car's silhouette is prominent against the fading light of day. |
+| 4:45 | The image shows a teal-colored car parked on a road beside a body of water, with a mountainous landscape in the background. The car is positioned facing the right side of the image, showcasing its sleek design and modern features. |
+| 4:48 | The video frame depicts a serene lake scene with a small, bright blue object, possibly a boat or kayak, situated on the shore in front of a dense forest. The surrounding environment is dark and moody, with the still water reflecting the shadows of the trees. |
+| 4:51 | The video frame shows the front end of a dark-colored car driving along a road next to a large body of water, with mountains in the background. The scene appears to be set during sunrise or sunset, with the sun casting a warm glow on the water. |
+| 4:54 | The video frame shows a winding road along the edge of a large body of water, with a car driving on it, surrounded by mountains and trees. The scene is serene, with a hazy sky and calm water reflecting the scenery. |
+| 4:57 | The video shows a low-angle shot of tall trees against a bright sky. The sun shines through the trees. |
+| 5:00 | A teal sports car drives along a paved road winding through a snowy forest. The photo is taken through a blurry foreground of tree branches. |
+
+---
+*Generated in 69.9s (13.4s extract + 55.2s API) using 4452 tokens across 100 frames with 10 parallel workers on Groq.*
