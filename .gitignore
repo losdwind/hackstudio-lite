@@ -2,6 +2,13 @@ node_modules
 dist
 .DS_Store
 .env
+!.env.example
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# Large binary assets — download separately, don't track in git
+public/videos/
+
+# Playwright MCP test artifacts
+.playwright-mcp/

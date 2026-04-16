@@ -5,18 +5,19 @@ import {
   interpolate,
   AbsoluteFill,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, SPRING_SNAPPY, STAGGER_SLOW } from "../../lib/timing";
 import { specComparisonData } from "../../data/chart-data";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 
 type Props = { lang: Lang };
 
 export const SpecComparison: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const title = lang === "cn" ? "SU7 vs Model 3" : "SU7 vs Model 3";
 
   // Cards slide in from sides
@@ -33,7 +34,7 @@ export const SpecComparison: React.FC<Props> = ({ lang }) => {
       style={{
         justifyContent: "center",
         alignItems: "center",
-        fontFamily,
+        fontFamily: bodyFont,
       }}
     >
       {/* Title */}
@@ -43,6 +44,7 @@ export const SpecComparison: React.FC<Props> = ({ lang }) => {
           top: 60,
           fontSize: 52,
           fontWeight: 900,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -58,23 +60,40 @@ export const SpecComparison: React.FC<Props> = ({ lang }) => {
           marginTop: 40,
         }}
       >
-        {/* SU7 Card */}
+        {/* SU7 Card — glassmorphism with left-edge gradient accent */}
         <div
           style={{
             width: 420,
-            backgroundColor: COLORS.surface,
-            borderRadius: 20,
-            border: `2px solid ${COLORS.xiaomiOrange}`,
+            backgroundColor: "rgba(28, 27, 27, 0.7)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderRadius: 16,
             padding: "30px 40px",
             transform: `translateX(${su7X}px)`,
             opacity: su7Entrance,
+            boxShadow: SHADOWS.primaryGlow,
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          {/* Left-edge gradient accent */}
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              background: GRADIENTS.primaryCTA,
+              borderRadius: "16px 0 0 16px",
+            }}
+          />
           <div
             style={{
               fontSize: 36,
               fontWeight: 900,
-              color: COLORS.xiaomiOrange,
+              fontFamily: displayFont,
+              color: COLORS.primaryContainer,
               textAlign: "center",
               marginBottom: 30,
             }}
@@ -97,8 +116,12 @@ export const SpecComparison: React.FC<Props> = ({ lang }) => {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  padding: "12px 0",
-                  borderBottom: `1px solid rgba(255,255,255,0.06)`,
+                  padding: "12px 8px",
+                  borderRadius: 8,
+                  backgroundColor:
+                    i % 2 === 0
+                      ? COLORS.surfaceContainerLow
+                      : "transparent",
                   opacity: interpolate(rowProgress, [0, 1], [0, 1]),
                   transform: `translateY(${interpolate(rowProgress, [0, 1], [15, 0])}px)`,
                 }}
@@ -124,23 +147,40 @@ export const SpecComparison: React.FC<Props> = ({ lang }) => {
           })}
         </div>
 
-        {/* Model 3 Card */}
+        {/* Model 3 Card — glassmorphism with left-edge gradient accent */}
         <div
           style={{
             width: 420,
-            backgroundColor: COLORS.surface,
-            borderRadius: 20,
-            border: `2px solid ${COLORS.accentBlue}`,
+            backgroundColor: "rgba(28, 27, 27, 0.7)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderRadius: 16,
             padding: "30px 40px",
             transform: `translateX(${m3X}px)`,
             opacity: m3Entrance,
+            boxShadow: SHADOWS.nodeGlow,
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          {/* Left-edge gradient accent */}
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              background: `linear-gradient(180deg, ${COLORS.tertiary}, ${COLORS.tertiaryBright})`,
+              borderRadius: "16px 0 0 16px",
+            }}
+          />
           <div
             style={{
               fontSize: 36,
               fontWeight: 900,
-              color: COLORS.accentBlue,
+              fontFamily: displayFont,
+              color: COLORS.tertiary,
               textAlign: "center",
               marginBottom: 30,
             }}
@@ -163,8 +203,12 @@ export const SpecComparison: React.FC<Props> = ({ lang }) => {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  padding: "12px 0",
-                  borderBottom: `1px solid rgba(255,255,255,0.06)`,
+                  padding: "12px 8px",
+                  borderRadius: 8,
+                  backgroundColor:
+                    i % 2 === 0
+                      ? COLORS.surfaceContainerLow
+                      : "transparent",
                   opacity: interpolate(rowProgress, [0, 1], [0, 1]),
                   transform: `translateY(${interpolate(rowProgress, [0, 1], [15, 0])}px)`,
                 }}

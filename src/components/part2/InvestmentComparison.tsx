@@ -5,12 +5,12 @@ import {
   interpolate,
   AbsoluteFill,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, STAGGER_SLOW } from "../../lib/timing";
 import { investmentData } from "../../data/chart-data";
 import { AnimatedNumber } from "../common/AnimatedNumber";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 
 type Props = { lang: Lang };
 
@@ -22,7 +22,8 @@ const MAX_VALUE = 100;
 export const InvestmentComparison: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const title =
     lang === "cn" ? "造车投资规模对比（亿元）" : "Auto Investment (Billion CNY)";
 
@@ -33,7 +34,7 @@ export const InvestmentComparison: React.FC<Props> = ({ lang }) => {
       style={{
         justifyContent: "center",
         alignItems: "center",
-        fontFamily,
+        fontFamily: bodyFont,
       }}
     >
       {/* Title */}
@@ -43,6 +44,7 @@ export const InvestmentComparison: React.FC<Props> = ({ lang }) => {
           top: 120,
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -88,8 +90,8 @@ export const InvestmentComparison: React.FC<Props> = ({ lang }) => {
                   fontSize: 28,
                   fontWeight: 600,
                   color: item.highlight
-                    ? COLORS.xiaomiOrange
-                    : COLORS.textSecondary,
+                    ? COLORS.primaryContainer
+                    : COLORS.secondary,
                   opacity: interpolate(barProgress, [0, 0.3, 1], [0, 0, 1]),
                 }}
               >
@@ -103,11 +105,11 @@ export const InvestmentComparison: React.FC<Props> = ({ lang }) => {
                   height: BAR_HEIGHT,
                   width: barWidth,
                   backgroundColor: item.highlight
-                    ? COLORS.xiaomiOrange
-                    : COLORS.neutral,
-                  borderRadius: "0 8px 8px 0",
+                    ? COLORS.primaryContainer
+                    : COLORS.surfaceBright,
+                  borderRadius: "0 12px 12px 0",
                   boxShadow: item.highlight
-                    ? `0 0 20px ${COLORS.glow}`
+                    ? SHADOWS.primaryGlow
                     : "none",
                 }}
               />
@@ -126,10 +128,10 @@ export const InvestmentComparison: React.FC<Props> = ({ lang }) => {
                   fontSize={28}
                   color={
                     item.highlight
-                      ? COLORS.xiaomiOrange
-                      : COLORS.textSecondary
+                      ? COLORS.primaryContainer
+                      : COLORS.secondary
                   }
-                  fontFamily={fontFamily}
+                  fontFamily={bodyFont}
                 />
               </div>
             </div>

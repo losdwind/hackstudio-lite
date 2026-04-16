@@ -5,11 +5,11 @@ import {
   interpolate,
   AbsoluteFill,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, SPRING_BOUNCY, STAGGER_DEFAULT } from "../../lib/timing";
 import { ecosystemRings } from "../../data/chart-data";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 import { contentCN } from "../../data/content-cn";
 import { contentEN } from "../../data/content-en";
 
@@ -18,12 +18,13 @@ type Props = { lang: Lang };
 const CX = 960;
 const CY = 540;
 const RING_RADII = [200, 340, 470];
-const RING_COLORS = [COLORS.accentBlue, COLORS.xiaomiOrange, "#22C55E"];
+const RING_COLORS = [COLORS.tertiary, COLORS.primaryContainer, "#22C55E"];
 
 export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const content = lang === "cn" ? contentCN.part4 : contentEN.part4;
 
   // Center logo entrance
@@ -38,7 +39,7 @@ export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
   const titleProgress = spring({ frame, fps, config: SPRING_SMOOTH });
 
   return (
-    <AbsoluteFill style={{ fontFamily }}>
+    <AbsoluteFill style={{ fontFamily: bodyFont }}>
       {/* Title */}
       <div
         style={{
@@ -48,6 +49,7 @@ export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
           textAlign: "center",
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -64,6 +66,17 @@ export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
           height: "100%",
         }}
       >
+        <defs>
+          <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="7.5" result="blur" />
+            <feFlood floodColor="#9DCAFF" floodOpacity="0.4" result="color" />
+            <feComposite in="color" in2="blur" operator="in" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         {/* Rings */}
         {ecosystemRings.map((ring, ringIdx) => {
           const ringDelay = 20 + ringIdx * 30;
@@ -125,14 +138,16 @@ export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
 
                 return (
                   <g key={item.en}>
-                    {/* Item dot */}
+                    {/* Item dot — ghost border + node glow */}
                     <circle
                       cx={ix}
                       cy={iy}
                       r={interpolate(itemProgress, [0, 1], [0, 24])}
-                      fill={COLORS.surface}
+                      fill={COLORS.surfaceContainerLow}
                       stroke={RING_COLORS[ringIdx]}
-                      strokeWidth={2}
+                      strokeWidth={1}
+                      strokeOpacity={0.15}
+                      filter="url(#nodeGlow)"
                     />
                     {/* Item label */}
                     <text
@@ -174,7 +189,7 @@ export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
         })}
       </svg>
 
-      {/* Center logo */}
+      {/* Center logo — glassmorphism + primary gradient + hero glow */}
       <div
         style={{
           position: "absolute",
@@ -183,12 +198,14 @@ export const EcosystemDiagram: React.FC<Props> = ({ lang }) => {
           width: 120,
           height: 120,
           borderRadius: "50%",
-          backgroundColor: COLORS.xiaomiOrange,
+          backgroundColor: "rgba(28, 27, 27, 0.7)",
+          backdropFilter: "blur(20px)",
+          background: GRADIENTS.primaryCTA,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           transform: `scale(${interpolate(centerProgress, [0, 1], [0, 1])})`,
-          boxShadow: `0 0 60px ${COLORS.glow}`,
+          boxShadow: SHADOWS.heroGlow,
         }}
       >
         <span

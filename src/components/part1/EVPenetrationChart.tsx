@@ -10,7 +10,7 @@ import { SPRING_SMOOTH, STAGGER_DEFAULT } from "../../lib/timing";
 import { evPenetrationData } from "../../data/chart-data";
 import { AnimatedNumber } from "../common/AnimatedNumber";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 
 const BAR_WIDTH = 120;
 const BAR_GAP = 40;
@@ -23,7 +23,8 @@ type Props = { lang: Lang };
 export const EVPenetrationChart: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const title = lang === "cn" ? "中国新能源车渗透率" : "China NEV Penetration Rate";
 
   const totalWidth =
@@ -39,7 +40,7 @@ export const EVPenetrationChart: React.FC<Props> = ({ lang }) => {
       style={{
         justifyContent: "center",
         alignItems: "center",
-        fontFamily,
+        fontFamily: bodyFont,
       }}
     >
       {/* Title */}
@@ -49,6 +50,7 @@ export const EVPenetrationChart: React.FC<Props> = ({ lang }) => {
           top: 80,
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: titleOpacity,
         }}
@@ -141,7 +143,7 @@ export const EVPenetrationChart: React.FC<Props> = ({ lang }) => {
                   decimals={1}
                   fontSize={28}
                   color={COLORS.textPrimary}
-                  fontFamily={fontFamily}
+                  fontFamily={bodyFont}
                 />
               </div>
               {/* Year label */}
@@ -153,7 +155,7 @@ export const EVPenetrationChart: React.FC<Props> = ({ lang }) => {
                   width: BAR_WIDTH,
                   textAlign: "center",
                   fontSize: 24,
-                  color: COLORS.textSecondary,
+                  color: COLORS.secondary,
                   opacity: interpolate(barProgress, [0, 0.3, 1], [0, 0, 1]),
                 }}
               >

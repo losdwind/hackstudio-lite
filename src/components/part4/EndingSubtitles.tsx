@@ -5,10 +5,10 @@ import {
   interpolate,
   AbsoluteFill,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS } from "../../lib/colors";
 import { SPRING_SMOOTH, SPRING_BOUNCY } from "../../lib/timing";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 import { contentCN } from "../../data/content-cn";
 import { contentEN } from "../../data/content-en";
 
@@ -17,7 +17,8 @@ type Props = { lang: Lang };
 export const EndingSubtitles: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const content = lang === "cn" ? contentCN.part4 : contentEN.part4;
   const lines = content.endingLines;
 
@@ -72,7 +73,7 @@ export const EndingSubtitles: React.FC<Props> = ({ lang }) => {
       style={{
         justifyContent: "center",
         alignItems: "center",
-        fontFamily,
+        fontFamily: bodyFont,
       }}
     >
       <div
@@ -89,6 +90,7 @@ export const EndingSubtitles: React.FC<Props> = ({ lang }) => {
           style={{
             fontSize: 52,
             fontWeight: 700,
+            fontFamily: displayFont,
             color: COLORS.textPrimary,
             opacity: line1Opacity,
             transform: `scale(${line1Scale})`,
@@ -104,7 +106,7 @@ export const EndingSubtitles: React.FC<Props> = ({ lang }) => {
             style={{
               fontSize: 44,
               fontWeight: 400,
-              color: COLORS.textSecondary,
+              color: COLORS.secondary,
               textAlign: "center",
               minHeight: 60,
             }}
@@ -114,7 +116,7 @@ export const EndingSubtitles: React.FC<Props> = ({ lang }) => {
               style={{
                 opacity:
                   Math.floor(frame / 15) % 2 === 0 ? 1 : 0,
-                color: COLORS.xiaomiOrange,
+                color: COLORS.primaryContainer,
               }}
             >
               |
@@ -143,7 +145,7 @@ export const EndingSubtitles: React.FC<Props> = ({ lang }) => {
               left: 0,
               height: 12,
               width: `${highlightProgress * 100}%`,
-              backgroundColor: COLORS.xiaomiOrange,
+              background: GRADIENTS.primaryCTA,
               opacity: 0.4,
               borderRadius: 4,
               zIndex: 0,

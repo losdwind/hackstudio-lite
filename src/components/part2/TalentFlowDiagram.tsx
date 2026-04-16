@@ -5,11 +5,11 @@ import {
   interpolate,
   AbsoluteFill,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, STAGGER_DRAMATIC } from "../../lib/timing";
 import { talentFlowSources } from "../../data/chart-data";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 import { contentCN } from "../../data/content-cn";
 import { contentEN } from "../../data/content-en";
 
@@ -23,7 +23,8 @@ const SPACING_Y = 130;
 export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const content = lang === "cn" ? contentCN.part2 : contentEN.part2;
 
   const titleProgress = spring({ frame, fps, config: SPRING_SMOOTH });
@@ -37,7 +38,7 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
   });
 
   return (
-    <AbsoluteFill style={{ fontFamily }}>
+    <AbsoluteFill style={{ fontFamily: bodyFont }}>
       {/* Title */}
       <div
         style={{
@@ -47,6 +48,7 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
           textAlign: "center",
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -101,7 +103,7 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
               <path
                 d={pathD}
                 fill="none"
-                stroke={COLORS.xiaomiOrange}
+                stroke={COLORS.primaryContainer}
                 strokeWidth={2}
                 strokeDasharray={pathLength}
                 strokeDashoffset={dashOffset}
@@ -113,7 +115,7 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
                   cx={dotX}
                   cy={dotY}
                   r={6}
-                  fill={COLORS.xiaomiOrange}
+                  fill={COLORS.primaryContainer}
                   opacity={interpolate(
                     arrowProgress,
                     [0, 0.1, 0.9, 1],
@@ -156,8 +158,9 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
                 width: 50,
                 height: 50,
                 borderRadius: 12,
-                backgroundColor: COLORS.surface,
-                border: `1px solid ${COLORS.glassBorder}`,
+                backgroundColor: "rgba(28, 27, 27, 0.7)",
+                backdropFilter: "blur(20px)",
+                boxShadow: SHADOWS.nodeGlow,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -169,7 +172,7 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
             <span
               style={{
                 fontSize: 24,
-                color: COLORS.textSecondary,
+                color: COLORS.secondary,
                 fontWeight: 600,
               }}
             >
@@ -190,14 +193,14 @@ export const TalentFlowDiagram: React.FC<Props> = ({ lang }) => {
             50,
           width: 200,
           height: 100,
-          borderRadius: 20,
-          backgroundColor: COLORS.xiaomiOrange,
+          borderRadius: 16,
+          background: GRADIENTS.primaryCTA,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           opacity: interpolate(destProgress, [0, 1], [0, 1]),
           transform: `scale(${interpolate(destProgress, [0, 1], [0.7, 1])})`,
-          boxShadow: `0 0 40px ${COLORS.glow}`,
+          boxShadow: SHADOWS.primaryGlow,
         }}
       >
         <span

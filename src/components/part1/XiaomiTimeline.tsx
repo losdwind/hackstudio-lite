@@ -6,11 +6,11 @@ import {
   AbsoluteFill,
   Easing,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, STAGGER_DRAMATIC } from "../../lib/timing";
 import { xiaomiTimeline } from "../../data/chart-data";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 
 type Props = { lang: Lang };
 
@@ -20,7 +20,8 @@ const LINE_Y = 540;
 export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const title = lang === "cn" ? "小米发展历程" : "Xiaomi Milestones";
 
   const itemCount = xiaomiTimeline.length;
@@ -41,7 +42,7 @@ export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
   return (
     <AbsoluteFill
       style={{
-        fontFamily,
+        fontFamily: bodyFont,
       }}
     >
       {/* Title */}
@@ -53,6 +54,7 @@ export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
           textAlign: "center",
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -68,7 +70,7 @@ export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
           left: padding,
           width: usableWidth * lineProgress,
           height: 3,
-          backgroundColor: COLORS.xiaomiOrange,
+          backgroundColor: COLORS.primaryContainer,
           borderRadius: 2,
         }}
       />
@@ -104,12 +106,11 @@ export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
                 height: DOT_SIZE,
                 borderRadius: "50%",
                 backgroundColor: dotVisible
-                  ? COLORS.xiaomiOrange
+                  ? COLORS.primaryContainer
                   : "transparent",
                 transform: `scale(${dotProgress})`,
-                border: `2px solid ${COLORS.xiaomiOrange}`,
                 boxShadow: dotVisible
-                  ? `0 0 12px ${COLORS.glow}`
+                  ? SHADOWS.primaryGlow
                   : "none",
               }}
             />
@@ -136,7 +137,7 @@ export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
                 textAlign: "center",
                 fontSize: 28,
                 fontWeight: 900,
-                color: COLORS.xiaomiOrange,
+                color: COLORS.primaryContainer,
                 opacity: interpolate(dotProgress, [0, 0.5, 1], [0, 0, 1]),
               }}
             >
@@ -152,7 +153,7 @@ export const XiaomiTimeline: React.FC<Props> = ({ lang }) => {
                 width: 160,
                 textAlign: "center",
                 fontSize: 22,
-                color: COLORS.textSecondary,
+                color: COLORS.secondary,
                 opacity: interpolate(dotProgress, [0, 0.5, 1], [0, 0, 1]),
                 transform: `translateY(${interpolate(dotProgress, [0, 1], [isAbove ? 10 : -10, 0])}px)`,
               }}

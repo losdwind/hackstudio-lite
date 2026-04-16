@@ -6,10 +6,10 @@ import {
   AbsoluteFill,
   Easing,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, SPRING_BOUNCY } from "../../lib/timing";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 import { contentCN } from "../../data/content-cn";
 import { contentEN } from "../../data/content-en";
 
@@ -22,13 +22,14 @@ const PIVOT_X = 960; // center of 1920
 export const PricingBalance: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
   const content = lang === "cn" ? contentCN.part3 : contentEN.part3;
 
   const titleProgress = spring({ frame, fps, config: SPRING_SMOOTH });
 
-  // Phase 1 (0-90): Specs pile on left → tilt left (negative rotation)
-  // Phase 2 (90-160): Price drops on right → tilt right
+  // Phase 1 (0-90): Specs pile on left -> tilt left (negative rotation)
+  // Phase 2 (90-160): Price drops on right -> tilt right
   // Phase 3 (160-240): Settle to equilibrium
   const phase1Tilt = interpolate(frame, [20, 80], [0, -8], {
     extrapolateLeft: "clamp",
@@ -59,9 +60,10 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
   }
 
   // Spec items appear staggered
-  const specItems = lang === "cn"
-    ? ["续航 700km", "673匹马力", "2.78s百公里", "智能驾驶"]
-    : ["700km Range", "673 HP", "2.78s 0-100", "Smart Drive"];
+  const specItems =
+    lang === "cn"
+      ? ["续航 700km", "673匹马力", "2.78s百公里", "智能驾驶"]
+      : ["700km Range", "673 HP", "2.78s 0-100", "Smart Drive"];
 
   // Price drop animation
   const priceDropProgress = spring({
@@ -75,7 +77,7 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
   const priceScale = interpolate(priceDropProgress, [0, 1], [0.5, 1]);
 
   return (
-    <AbsoluteFill style={{ fontFamily }}>
+    <AbsoluteFill style={{ fontFamily: bodyFont }}>
       {/* Title */}
       <div
         style={{
@@ -85,6 +87,7 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
           textAlign: "center",
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -105,17 +108,16 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
         }}
       />
 
-      {/* Pivot triangle */}
+      {/* Pivot triangle — clipPath instead of border trick (No-Line Rule) */}
       <div
         style={{
           position: "absolute",
           left: PIVOT_X - 20,
           top: BEAM_Y - 10,
-          width: 0,
-          height: 0,
-          borderLeft: "20px solid transparent",
-          borderRight: "20px solid transparent",
-          borderBottom: `20px solid ${COLORS.textMuted}`,
+          width: 40,
+          height: 20,
+          backgroundColor: COLORS.textMuted,
+          clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
         }}
       />
 
@@ -127,7 +129,7 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
           top: BEAM_Y - 8,
           width: BEAM_WIDTH,
           height: 8,
-          backgroundColor: COLORS.textSecondary,
+          background: GRADIENTS.primaryCTA,
           borderRadius: 4,
           transformOrigin: "center center",
           transform: `rotate(${beamRotation}deg)`,
@@ -146,7 +148,8 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
             style={{
               fontSize: 20,
               fontWeight: 700,
-              color: COLORS.accentBlue,
+              fontFamily: displayFont,
+              color: COLORS.tertiary,
               textAlign: "center",
               marginBottom: 12,
               transform: `rotate(${-beamRotation}deg)`,
@@ -168,10 +171,10 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
                 key={item}
                 style={{
                   fontSize: 18,
-                  color: COLORS.textSecondary,
+                  color: COLORS.secondary,
                   textAlign: "center",
                   padding: "4px 12px",
-                  backgroundColor: `rgba(59, 130, 246, ${0.15 * itemProgress})`,
+                  backgroundColor: `rgba(157, 202, 255, ${0.1 * itemProgress})`,
                   borderRadius: 8,
                   marginBottom: 6,
                   opacity: interpolate(itemProgress, [0, 1], [0, 1]),
@@ -198,7 +201,8 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
             style={{
               fontSize: 20,
               fontWeight: 700,
-              color: COLORS.xiaomiOrange,
+              fontFamily: displayFont,
+              color: COLORS.primaryContainer,
               marginBottom: 12,
               transform: `rotate(${-beamRotation}deg)`,
             }}
@@ -206,7 +210,7 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
             {content.balanceRight}
           </div>
 
-          {/* Price tag dropping in */}
+          {/* Price tag dropping in — gradient/glow treatment */}
           <div
             style={{
               transform: `rotate(${-beamRotation}deg) translateY(${priceY}px) scale(${priceScale})`,
@@ -217,8 +221,12 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
               style={{
                 fontSize: 40,
                 fontWeight: 900,
-                color: COLORS.xiaomiOrange,
-                textShadow: `0 0 20px ${COLORS.glow}`,
+                fontFamily: displayFont,
+                background: GRADIENTS.primaryCTA,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                filter: `drop-shadow(${SHADOWS.primaryGlow})`,
               }}
             >
               ¥21.59{lang === "cn" ? "万" : "K"}
@@ -235,16 +243,12 @@ export const PricingBalance: React.FC<Props> = ({ lang }) => {
           width: "100%",
           textAlign: "center",
           fontSize: 28,
+          fontFamily: bodyFont,
           color: COLORS.textMuted,
-          opacity: interpolate(
-            frame,
-            [200, 230],
-            [0, 1],
-            {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            },
-          ),
+          opacity: interpolate(frame, [200, 230], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          }),
         }}
       >
         {lang === "cn"

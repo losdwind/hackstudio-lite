@@ -16,8 +16,10 @@ import { SalesCounter } from "./components/part3/SalesCounter";
 import { EcosystemDiagram } from "./components/part4/EcosystemDiagram";
 import { GlobalExpansionMap } from "./components/part4/GlobalExpansionMap";
 import { EndingSubtitles } from "./components/part4/EndingSubtitles";
+import { computePartFrames } from "./lib/compute-durations";
 
 const FPS = 30;
+const parts = computePartFrames("cn");
 const WIDTH = 1920;
 const HEIGHT = 1080;
 
@@ -54,7 +56,7 @@ export const RemotionRoot: React.FC = () => {
           <Composition
             id="Section1-WhyMakeCars"
             component={Part1}
-            durationInFrames={1500}
+            durationInFrames={parts.part1}
             fps={FPS}
             width={WIDTH}
             height={HEIGHT}
@@ -64,7 +66,7 @@ export const RemotionRoot: React.FC = () => {
           <Composition
             id="Section2-TenBillionBet"
             component={Part2}
-            durationInFrames={1500}
+            durationInFrames={parts.part2}
             fps={FPS}
             width={WIDTH}
             height={HEIGHT}
@@ -74,7 +76,7 @@ export const RemotionRoot: React.FC = () => {
           <Composition
             id="Section3-FightingBattle"
             component={Part3}
-            durationInFrames={1800}
+            durationInFrames={parts.part3}
             fps={FPS}
             width={WIDTH}
             height={HEIGHT}
@@ -84,7 +86,7 @@ export const RemotionRoot: React.FC = () => {
           <Composition
             id="Section4-BiggerStory"
             component={Part4}
-            durationInFrames={1950}
+            durationInFrames={parts.part4}
             fps={FPS}
             width={WIDTH}
             height={HEIGHT}

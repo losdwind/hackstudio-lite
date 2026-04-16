@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "@remotion/captions": "4.0.448",
     "@remotion/cli": "4.0.448",
     "@remotion/google-fonts": "4.0.448",
     "@remotion/light-leaks": "4.0.448",
@@ -32,7 +33,9 @@
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "generate-tts": "bun run scripts/generate-tts.ts",
+    "validate-broll": "bun run scripts/validate-broll.ts"
   },
   "sideEffects": [
     "*.css"

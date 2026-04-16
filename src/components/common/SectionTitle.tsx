@@ -5,19 +5,21 @@ import {
   interpolate,
   AbsoluteFill,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS } from "../../lib/colors";
 import { SPRING_SMOOTH } from "../../lib/timing";
 
 type SectionTitleProps = {
   title: string;
   subtitle: string;
-  fontFamily?: string;
+  displayFont?: string;
+  bodyFont?: string;
 };
 
 export const SectionTitle: React.FC<SectionTitleProps> = ({
   title,
   subtitle,
-  fontFamily,
+  displayFont,
+  bodyFont,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -36,7 +38,7 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
   const subtitleOpacity = interpolate(subtitleProgress, [0, 1], [0, 1]);
   const subtitleY = interpolate(subtitleProgress, [0, 1], [30, 0]);
 
-  // Line accent
+  // Gradient accent line (primary CTA gradient, not a solid border)
   const lineWidth = interpolate(titleProgress, [0, 1], [0, 120]);
 
   return (
@@ -44,7 +46,6 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
       style={{
         justifyContent: "center",
         alignItems: "center",
-        fontFamily,
       }}
     >
       <div
@@ -52,21 +53,24 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 20,
+          gap: 24,
         }}
       >
+        {/* Gradient accent — no solid borders per "No-Line Rule" */}
         <div
           style={{
             width: lineWidth,
             height: 4,
-            backgroundColor: COLORS.xiaomiOrange,
+            background: GRADIENTS.primaryCTA,
             borderRadius: 2,
           }}
         />
         <h1
           style={{
             fontSize: 72,
-            fontWeight: 900,
+            fontWeight: 800,
+            fontFamily: displayFont,
+            letterSpacing: "-0.02em",
             color: COLORS.textPrimary,
             opacity: titleOpacity,
             transform: `translateY(${titleY}px)`,
@@ -82,7 +86,8 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
           style={{
             fontSize: 36,
             fontWeight: 400,
-            color: COLORS.textSecondary,
+            fontFamily: bodyFont,
+            color: COLORS.secondary,
             opacity: subtitleOpacity,
             transform: `translateY(${subtitleY}px)`,
             margin: 0,

@@ -7,27 +7,20 @@ import { Part2 } from "./part2/Part2";
 import { Part3 } from "./part3/Part3";
 import { Part4 } from "./part4/Part4";
 import type { VideoProps } from "../schemas/video-schema";
+import { computePartFrames, computeTotalFrames } from "../lib/compute-durations";
 
-// Section frame counts (must match the sum of Sequence durations in each Part)
-const PART1_FRAMES = 1500; // ~50s
-const PART2_FRAMES = 1500; // ~50s
-const PART3_FRAMES = 1800; // ~60s
-const PART4_FRAMES = 1950; // ~65s
 const TRANSITION_FRAMES = 15;
 
-export const TOTAL_FRAMES =
-  PART1_FRAMES +
-  PART2_FRAMES +
-  PART3_FRAMES +
-  PART4_FRAMES -
-  3 * TRANSITION_FRAMES; // subtract 3 transitions
+export const TOTAL_FRAMES = computeTotalFrames("cn");
 
 export const MasterComposition: React.FC<VideoProps> = ({ lang }) => {
+  const parts = computePartFrames(lang);
+
   return (
     <AbsoluteFill>
       <Background />
       <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={PART1_FRAMES}>
+        <TransitionSeries.Sequence durationInFrames={parts.part1}>
           <Part1 lang={lang} />
         </TransitionSeries.Sequence>
 
@@ -36,7 +29,7 @@ export const MasterComposition: React.FC<VideoProps> = ({ lang }) => {
           timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={PART2_FRAMES}>
+        <TransitionSeries.Sequence durationInFrames={parts.part2}>
           <Part2 lang={lang} />
         </TransitionSeries.Sequence>
 
@@ -45,7 +38,7 @@ export const MasterComposition: React.FC<VideoProps> = ({ lang }) => {
           timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={PART3_FRAMES}>
+        <TransitionSeries.Sequence durationInFrames={parts.part3}>
           <Part3 lang={lang} />
         </TransitionSeries.Sequence>
 
@@ -54,7 +47,7 @@ export const MasterComposition: React.FC<VideoProps> = ({ lang }) => {
           timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={PART4_FRAMES}>
+        <TransitionSeries.Sequence durationInFrames={parts.part4}>
           <Part4 lang={lang} />
         </TransitionSeries.Sequence>
       </TransitionSeries>

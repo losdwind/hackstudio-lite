@@ -1,5 +1,5 @@
 import { AbsoluteFill } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { GRADIENTS } from "../../lib/colors";
 
 export const Background: React.FC<{ children?: React.ReactNode }> = ({
   children,
@@ -7,7 +7,7 @@ export const Background: React.FC<{ children?: React.ReactNode }> = ({
   return (
     <AbsoluteFill
       style={{
-        background: `radial-gradient(ellipse at 50% 30%, ${COLORS.surfaceLight} 0%, ${COLORS.bg} 70%)`,
+        background: GRADIENTS.surfaceRadial,
       }}
     >
       {children}

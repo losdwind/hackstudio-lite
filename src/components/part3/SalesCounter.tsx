@@ -6,11 +6,11 @@ import {
   AbsoluteFill,
   Easing,
 } from "remotion";
-import { COLORS } from "../../lib/colors";
+import { COLORS, GRADIENTS, SHADOWS } from "../../lib/colors";
 import { SPRING_SMOOTH, STAGGER_SLOW } from "../../lib/timing";
 import { salesData } from "../../data/chart-data";
 import type { Lang } from "../../schemas/video-schema";
-import { getFontFamily } from "../../lib/fonts";
+import { getDisplayFont, getBodyFont } from "../../lib/fonts";
 
 type Props = { lang: Lang };
 
@@ -19,10 +19,10 @@ const BAR_MAX_WIDTH = 700;
 export const SalesCounter: React.FC<Props> = ({ lang }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const fontFamily = getFontFamily(lang);
+  const displayFont = getDisplayFont(lang);
+  const bodyFont = getBodyFont(lang);
 
-  const title =
-    lang === "cn" ? "27分钟的奇迹" : "The 27-Minute Miracle";
+  const title = lang === "cn" ? "27分钟的奇迹" : "The 27-Minute Miracle";
   const ordersLabel = lang === "cn" ? "订单数" : "Orders";
   const timeLabel = lang === "cn" ? "分钟" : "Minutes";
 
@@ -33,9 +33,7 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
     easing: Easing.bezier(0.2, 0.0, 0.4, 1.0),
   });
 
-  const currentOrders = Math.round(
-    counterProgress * salesData.totalOrders,
-  );
+  const currentOrders = Math.round(counterProgress * salesData.totalOrders);
   const currentMinutes = Math.round(counterProgress * salesData.timeMinutes);
 
   // Pulse effect at completion
@@ -54,7 +52,7 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
       style={{
         justifyContent: "center",
         alignItems: "center",
-        fontFamily,
+        fontFamily: bodyFont,
       }}
     >
       {/* Title */}
@@ -64,6 +62,7 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
           top: 60,
           fontSize: 48,
           fontWeight: 700,
+          fontFamily: displayFont,
           color: COLORS.textPrimary,
           opacity: interpolate(titleProgress, [0, 1], [0, 1]),
         }}
@@ -86,12 +85,11 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
             style={{
               fontSize: 96,
               fontWeight: 900,
-              color: COLORS.xiaomiOrange,
+              fontFamily: displayFont,
+              color: COLORS.primaryContainer,
               fontVariantNumeric: "tabular-nums",
               transform: `scale(${pulseScale})`,
-              textShadow: isPulsing
-                ? `0 0 40px ${COLORS.glow}`
-                : "none",
+              textShadow: isPulsing ? SHADOWS.primaryGlow : "none",
             }}
           >
             {currentOrders.toLocaleString()}
@@ -99,7 +97,7 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
           <div
             style={{
               fontSize: 24,
-              color: COLORS.textSecondary,
+              color: COLORS.secondary,
               marginTop: 8,
             }}
           >
@@ -113,6 +111,7 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
             style={{
               fontSize: 96,
               fontWeight: 900,
+              fontFamily: displayFont,
               color: COLORS.textPrimary,
               fontVariantNumeric: "tabular-nums",
             }}
@@ -122,7 +121,7 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
           <div
             style={{
               fontSize: 24,
-              color: COLORS.textSecondary,
+              color: COLORS.secondary,
               marginTop: 8,
             }}
           >
@@ -169,8 +168,8 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
                   fontSize: 22,
                   fontWeight: 600,
                   color: comp.highlight
-                    ? COLORS.xiaomiOrange
-                    : COLORS.textSecondary,
+                    ? COLORS.primaryContainer
+                    : COLORS.secondary,
                   opacity: interpolate(barProgress, [0, 0.3, 1], [0, 0, 1]),
                 }}
               >
@@ -180,20 +179,18 @@ export const SalesCounter: React.FC<Props> = ({ lang }) => {
                 style={{
                   height: 36,
                   width: barWidth,
-                  backgroundColor: comp.highlight
-                    ? COLORS.xiaomiOrange
-                    : COLORS.neutral,
+                  background: comp.highlight
+                    ? GRADIENTS.primaryCTA
+                    : COLORS.surfaceBright,
                   borderRadius: "0 6px 6px 0",
-                  boxShadow: comp.highlight
-                    ? `0 0 16px ${COLORS.glow}`
-                    : "none",
+                  boxShadow: comp.highlight ? SHADOWS.primaryGlow : "none",
                 }}
               />
               <div
                 style={{
                   fontSize: 20,
                   color: comp.highlight
-                    ? COLORS.xiaomiOrange
+                    ? COLORS.primaryContainer
                     : COLORS.textMuted,
                   opacity: interpolate(barProgress, [0, 0.5, 1], [0, 0, 1]),
                   fontVariantNumeric: "tabular-nums",
