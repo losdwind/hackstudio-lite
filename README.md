@@ -21,32 +21,44 @@ One `bun run dev` and you're previewing. One `remotion render` and you have an `
 
 ## The Pipeline
 
+Nine phases. Three of them — Concept, Editor Pass, Validation — exist because we learned the hard way that render time is too expensive to waste on avoidable mistakes.
+
 ```
-   Research         Script          B-Roll          TTS            Build           Render
-  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-  │ YouTube  │    │ Bilingual│    │ Official │    │ MiniMax │    │ React   │    │ Remotion │
-  │ Bilibili │    │ CN + EN  │    │ channels │    │ T2A v2  │    │ comps + │    │ h264    │
-  │ Reddit   │───>│ scripts  │───>│ analyzed │───>│ word-   │───>│ data-   │───>│ .mp4    │
-  │ WeChat   │    │ as .ts   │    │ frame by │    │ level   │    │ driven  │    │ CN + EN │
-  │ Xueqiu   │    │ data     │    │ frame    │    │ timing  │    │ timeline│    │         │
-  │ Twitter  │    │          │    │          │    │         │    │         │    │         │
-  │ Whisper  │    │          │    │          │    │         │    │         │    │         │
-  │ +10 more │    │          │    │          │    │         │    │         │    │         │
-  └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
-       AI              AI             AI             AI           Code            Code
+  Concept   Research   Script   B-Roll   Editor Pass   TTS    Build   Validate   Render
+ ┌───────┐ ┌───────┐ ┌──────┐ ┌───────┐ ┌──────────┐ ┌─────┐ ┌─────┐ ┌────────┐ ┌───────┐
+ │ Story │ │ 17+   │ │ TS   │ │ yt-dlp│ │ Auto-    │ │ T2A │ │React│ │ 5-check│ │h264   │
+ │ angle │→│ plat- │→│ data │→│ +     │→│ director │→│ v2  │→│ kind│→│ harness│→│CN+EN  │
+ │ gap   │ │ forms │ │ +    │ │ vision│ │ +        │ │ word│ │dis- │ │ pre-   │ │mp4    │
+ │ found │ │ CN/EN │ │ chart│ │ AI    │ │ role tag │ │level│ │patch│ │ render │ │       │
+ └───────┘ └───────┘ └──────┘ └───────┘ └──────────┘ └─────┘ └─────┘ └────────┘ └───────┘
+   1.5         1         2        3         3.5        4       5        5.5        6
+  Human       AI        AI       AI         AI         AI     Code     Code       Code
 ```
+
+### Phase 1.5 — Concept (before research)
+
+Every video starts with an editorial angle. Not "Xiaomi SU7 launch" — but **what's the gap between how Chinese and Western audiences see it**. `video-concept.md` pins down story spine, tone, and Part structure *before* any researcher runs. The hard-won lesson: research without a thesis produces a pile of facts, not a film.
 
 ### Phase 1 — Research
 
-AI agents scour 17+ platforms — YouTube, Reddit, Bilibili, WeChat, Xueqiu, Twitter/X, XiaoHongShu, Weibo, and more — gathering sources across both Chinese and English ecosystems. Every claim gets bilingual triangulation: 3+ independent sources spanning both languages. Primary sources (interviews, filings, official posts) always come first.
+AI agents scour 17+ platforms — YouTube, Reddit, Bilibili, WeChat, Xueqiu, Twitter/X, XiaoHongShu, Weibo, and more — gathering sources across both Chinese and English ecosystems. Every claim gets **bilingual triangulation**: 3+ independent sources spanning both languages. Primary sources (interviews, filings, official posts) always come first. The dossier lands in `research/<slug>/` as `transcript.md`, `facts.md`, `perspectives.md`, `visuals.md`.
 
 ### Phase 2 — Script
 
-Research becomes structured TypeScript — `content-cn.ts` and `content-en.ts` with narration lines, section titles, and chart labels. Data for visualizations lives in `chart-data.ts` with source citations.
+Research becomes structured TypeScript — `content-cn.ts` and `content-en.ts` with narration lines, section titles, and chart labels. Data for visualizations lives in `chart-data.ts` with source citations. Narration must sound **spoken, not written**: short sentences, no em dashes or semicolons, contractions welcome.
 
 ### Phase 3 — B-Roll Sourcing
 
-Videos are downloaded from official channels only (never generic stock footage), then analyzed frame-by-frame with AI vision models. A manifest ensures zero clip repetition across the entire video.
+Videos downloaded from official channels only (never generic stock), then analyzed frame-by-frame with **Gemini 3.1 Flash Lite** via OpenRouter — a recent default swap that made analysis faster, cheaper, and dramatically better at Chinese OCR. Each clip gets an `.analysis.md` saved *beside* the `.mp4` with visual description + OCR + entity inference (pass `--context` for identity-aware output). A manifest enforces zero time-range overlap across the entire video.
+
+### Phase 3.5 — Editor Pass (auto-director)
+
+```bash
+/video-editor --video xiaomi-su7
+# or override: /video-editor --video xiaomi-su7 --director curtis
+```
+
+The `video-editor` skill **scores the script** and auto-selects a documentary director persona — Adam Curtis (systems/irony), Errol Morris (human portraiture), or Alex Gibney (institutional accountability). It emits `broll-manifest.proposed.ts` with **role tags** (anchor / texture / counterpoint / transition) and director-voiced rationale per clip. Human review, rename to `broll-manifest.ts`, proceed. This step makes B-roll feel edited, not assembled.
 
 ### Phase 4 — TTS Generation
 
@@ -54,17 +66,44 @@ Videos are downloaded from official channels only (never generic stock footage),
 bun run scripts/generate-tts.ts --video xiaomi-su7
 ```
 
-MiniMax T2A v2 generates natural-sounding voiceover with **word-level timestamps** — not sentence-level, *word-level*. Every subtitle highlights in perfect sync with the spoken audio.
+MiniMax T2A v2 (`speech-2.8-hd`) generates voiceover with `voice_modify: { intensity: 40, pitch: 15, timbre: 10 }` for passionate delivery. Output includes **word-level timestamps** — not sentence-level — so every subtitle highlights in perfect sync with the spoken audio.
 
-### Phase 5 — Build
+### Phase 5 — Build (Sequence Kinds)
 
-React components render animated data visualizations (charts, diagrams, maps, timelines) that play over B-roll backgrounds with glassmorphism captions. The entire timeline is **audio-driven** — sequence durations are computed from TTS output, never hardcoded.
+Each narration line maps to a `SequenceEntry` with one of five **kinds**:
+
+| Kind | Background | Use Case |
+|------|-----------|----------|
+| `video` | Moving B-roll via `VideoBackground` | Standard narration segments |
+| `chart` | Calm `StaticBackground` | Data visualizations, diagrams, maps |
+| `title` | Calm `StaticBackground` | Part titles tied to a narration line (never silent) |
+| `quote` | Calm `StaticBackground` | Pull quotes, key claims |
+| `ending` | Moving B-roll via `VideoBackground` | Final beat with CTA |
+
+`PartRenderer` is a dispatcher that routes each entry to a focused renderer — `VideoSequence`, `ChartSequence`, `TitleSequence`, `QuoteSequence`, `EndingSequence` — living in `src/shared/components/renderers/`. The timeline is **audio-driven**: durations computed from TTS output, never hardcoded. Animations use `useTimeScale()` so keyframes scale proportionally to actual sequence length.
+
+### Phase 5.5 — Validation Harness (pre-render QA)
+
+```bash
+bun run scripts/validate-video.ts --video xiaomi-su7
+```
+
+Five checks that must pass before the expensive render step. Each exits with 🔴 fatal (hard block) or ⚠️ informational (reviewable):
+
+| Check | What it catches |
+|-------|-----------------|
+| `counts-consistency` | sequences, content, and alignment manifests disagree on line count |
+| `tts-integrity` | audio truncation, tail silence exceeding 0.08 amplitude (200ms window) |
+| `breathing-time` | chart < 4s, title < 2.5s, quote < 3.5s — text reads as rushed |
+| `broll-overlap` | two sequences share an overlapping time range from the same source file |
+| `text-density` | B-roll clip start-frame lands past 67% of text — caption never gets to breathe |
 
 ### Phase 6 — Render
 
 ```bash
 bunx remotion render XiaomiSU7-CN --codec=h264   # Chinese version
 bunx remotion render XiaomiSU7-EN --codec=h264   # English version
+# For Mapbox maps: add --gl=angle --concurrency=1
 ```
 
 ## Architecture
@@ -94,12 +133,16 @@ Adding a new video = new folder + data files + one import in `Root.tsx`. The sha
 
 | Decision | Why |
 |----------|-----|
+| **Sequence `kind` discriminated union** | A Part is no longer "video with chart overlays" — it's a sequence of typed entries. `chart` / `title` / `quote` use a calm `StaticBackground` instead of fighting moving B-roll for attention |
+| **No silent title cards** | Part titles are their own `kind: "title"` sequence tied to a narration line — audio never drops out |
+| **Auto-director for B-roll** | The `video-editor` skill scores the script and picks Curtis / Morris / Gibney. B-roll becomes edited, not assembled |
+| **Pre-render validation harness** | Render time is expensive. 5 static checks (counts / TTS / breathing / overlap / density) catch issues that would otherwise waste a 20-min render |
 | **One audio file per part** (not per line) | Natural prosody — MiniMax produces better speech when it sees the full paragraph context |
 | **Word-level timestamps** from MiniMax | Subtitle highlighting syncs to actual speech, not estimated timing |
 | **Audio-driven timeline** | Sequence durations are *computed* from TTS output — change the script and timing updates automatically |
+| **`useTimeScale()` for animations** | Keyframes scale proportionally to actual sequence duration — never hardcoded frame numbers |
 | **TypeScript data, not JSON** | Type safety, imports, and IDE autocomplete for all content and manifests |
-| **React components for animations** | Version-controlled, composable, testable — no After Effects project files |
-| **B-roll validation script** | `bun run validate-broll` catches clip repetition, missing files, and time-range overlaps before render |
+| **Gemini 3.1 Flash Lite for vision** | Fast, cheap, excellent Chinese OCR — swapped in after testing 5 alternatives |
 
 ## Design System — "Precision Editorial"
 
@@ -119,7 +162,9 @@ A cinematic visual language inspired by modern data journalism:
 | Language | TypeScript (strict) |
 | TTS | MiniMax T2A v2 (speech-2.8-hd) |
 | Transcription | OpenAI Whisper |
-| Video analysis | OpenRouter vision models |
+| Video analysis | Gemini 3.1 Flash Lite via OpenRouter |
+| Editor persona | `video-editor` skill (Curtis / Morris / Gibney) |
+| Pre-render QA | 5-check validation harness |
 | Research | AI agents across 17+ platforms |
 | Runtime | Bun |
 
@@ -145,11 +190,16 @@ bun run dev
 # 5. Generate TTS for a video
 bun run scripts/generate-tts.ts --video xiaomi-su7
 
-# 6. Validate B-roll assignments
-bun run scripts/validate-broll.ts
+# 6. Run the Editor Pass (auto-director B-roll tagging)
+#    /video-editor --video xiaomi-su7
+#    Then review .proposed.ts and rename to broll-manifest.ts
 
-# 7. Render final video
+# 7. Validate everything before render (5-check harness)
+bun run scripts/validate-video.ts --video xiaomi-su7
+
+# 8. Render final video
 bunx remotion render XiaomiSU7-CN --codec=h264
+bunx remotion render XiaomiSU7-EN --codec=h264
 ```
 
 ### Git LFS is mandatory

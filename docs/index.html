@@ -862,6 +862,10 @@
           <div class="stat-value"><span class="accent">0</span></div>
           <div class="stat-label">Video Editors</div>
         </div>
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Pre-Render Checks</div>
+        </div>
       </div>
     </div>
   </section>
@@ -906,43 +910,164 @@
         <div class="section-label">End-to-End Pipeline</div>
       </div>
       <h2>From raw sources to rendered .mp4</h2>
-      <p>Six phases, fully AI-assisted. Each step feeds the next with structured data.</p>
+      <p>Nine phases. Three of them &mdash; Concept, Editor Pass, Validation &mdash; exist because we learned the hard way that render time is too expensive to waste on avoidable mistakes.</p>
       <div class="pipeline-grid">
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 01.5</div>
+          <h3>Concept</h3>
+          <p>Every video starts with an editorial angle &mdash; what's the gap between how Chinese and Western audiences see this story? <code>video-concept.md</code> pins down spine and tone <em>before</em> any researcher runs.</p>
+          <span class="pipeline-tag warm">Human-First</span>
+        </div>
         <div class="pipeline-card">
           <div class="pipeline-number">Phase 01</div>
           <h3>Research</h3>
-          <p>AI agents search 17+ platforms across Chinese and English ecosystems. Every claim gets bilingual triangulation with 3+ independent sources.</p>
+          <p>AI agents search 17+ platforms across Chinese and English ecosystems. Every claim gets bilingual triangulation with 3+ independent sources, saved into a dossier of transcripts, facts, perspectives, and visuals.</p>
           <span class="pipeline-tag">AI-Driven</span>
         </div>
         <div class="pipeline-card">
           <div class="pipeline-number">Phase 02</div>
           <h3>Script</h3>
-          <p>Research becomes structured TypeScript &mdash; narration lines, section titles, chart labels, and verified data points with source citations.</p>
+          <p>Research becomes structured TypeScript &mdash; narration lines, section titles, chart labels, and verified data points. Must sound <em>spoken</em>, not written: short sentences, no em dashes.</p>
           <span class="pipeline-tag">AI-Driven</span>
         </div>
         <div class="pipeline-card">
           <div class="pipeline-number">Phase 03</div>
           <h3>B-Roll Sourcing</h3>
-          <p>Videos from official channels, analyzed frame-by-frame with AI vision models. A manifest enforces zero clip repetition across the entire video.</p>
+          <p>Videos from official channels only, analyzed frame-by-frame with <strong>Gemini 3.1 Flash Lite</strong> &mdash; fast, cheap, excellent Chinese OCR. Each clip gets a <code>.analysis.md</code> saved beside the <code>.mp4</code>.</p>
           <span class="pipeline-tag">AI-Driven</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 03.5</div>
+          <h3>Editor Pass</h3>
+          <p>The <code>video-editor</code> skill scores the script and auto-picks a documentary director persona &mdash; Adam Curtis, Errol Morris, or Alex Gibney &mdash; emitting role-tagged B-roll with director-voiced rationale.</p>
+          <span class="pipeline-tag warm">AI + Human Review</span>
         </div>
         <div class="pipeline-card">
           <div class="pipeline-number">Phase 04</div>
           <h3>TTS Generation</h3>
-          <p>MiniMax T2A v2 generates voiceover with word-level timestamps. Every subtitle highlights in perfect sync with speech.</p>
+          <p>MiniMax T2A v2 generates voiceover with <code>voice_modify</code> for passionate delivery. Word-level timestamps mean every subtitle highlights in perfect sync with speech.</p>
           <span class="pipeline-tag warm">AI + Code</span>
         </div>
         <div class="pipeline-card">
           <div class="pipeline-number">Phase 05</div>
-          <h3>Build Components</h3>
-          <p>React components render animated visualizations over B-roll with glassmorphism captions. The timeline is audio-driven, never hardcoded.</p>
+          <h3>Build (Sequence Kinds)</h3>
+          <p>Each line becomes a typed sequence &mdash; <code>video</code>, <code>chart</code>, <code>title</code>, <code>quote</code>, or <code>ending</code>. <code>PartRenderer</code> dispatches to focused renderers. Calm static backgrounds for data; moving B-roll for narrative.</p>
+          <span class="pipeline-tag warm">Code</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Phase 05.5</div>
+          <h3>Validation Harness</h3>
+          <p>Five pre-render checks: counts consistency, TTS integrity, breathing time, B-roll overlap, text density. Must pass before the expensive render. Catches what humans miss.</p>
           <span class="pipeline-tag warm">Code</span>
         </div>
         <div class="pipeline-card">
           <div class="pipeline-number">Phase 06</div>
           <h3>Render</h3>
-          <p>One <code>remotion render</code> command outputs broadcast-ready .mp4 in both Chinese and English versions.</p>
+          <p>One <code>remotion render</code> command outputs broadcast-ready .mp4 in both Chinese and English versions. Add <code>--gl=angle --concurrency=1</code> for Mapbox maps.</p>
           <span class="pipeline-tag warm">Code</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Sequence Kinds ==================== -->
+  <section id="sequence-kinds">
+    <div class="container arch-section">
+      <div class="section-label">Architecture Highlight</div>
+      <h2>Sequences have kinds now</h2>
+      <p>A Part used to be "video background with chart overlays". That model broke the moment data got complex &mdash; charts fought moving B-roll for attention, and silent title cards dropped the audio. The new model treats each narration line as a typed entry with a <code>kind</code> that picks the right renderer and the right background.</p>
+      <div class="pipeline-grid" style="margin-top: var(--space-2xl);">
+        <div class="pipeline-card">
+          <div class="pipeline-number">kind: "video"</div>
+          <h3>Moving B-roll</h3>
+          <p>Standard narration. <code>VideoBackground</code> plays a B-roll clip with <code>startFrom</code> trimming. Glassmorphism caption floats on top.</p>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">kind: "chart"</div>
+          <h3>Calm static canvas</h3>
+          <p>Data visualizations get a <code>StaticBackground</code> &mdash; a tonal gradient that doesn't compete for attention. Breathing time validator enforces minimum 4 seconds.</p>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">kind: "title"</div>
+          <h3>No more silent cards</h3>
+          <p>Part titles are tied to a narration line (typically <code>lineIdx: 0</code>). Audio never drops out. Minimum 2.5s breathing time.</p>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">kind: "quote"</div>
+          <h3>Pull quotes + key claims</h3>
+          <p>Typography-first composition on calm background. Minimum 3.5s breathing time for the line to land.</p>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">kind: "ending"</div>
+          <h3>Closing beat + CTA</h3>
+          <p>Returns to moving B-roll for emotional punctuation. Consumes the final slot in the <code>broll-manifest</code>.</p>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">PartRenderer</div>
+          <h3>The dispatcher</h3>
+          <p>Shared across every video. Routes each <code>SequenceEntry</code> to one of five focused renderers. Data flows in as arguments &mdash; zero video-specific imports in <code>src/shared/</code>.</p>
+          <span class="pipeline-tag">Reusable</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Editor Pass ==================== -->
+  <section id="editor-pass">
+    <div class="container arch-section">
+      <div class="section-label">New in Phase 3.5</div>
+      <h2>Auto-director for B-roll</h2>
+      <p>Picking B-roll is an editorial decision, not a technical one. The <code>video-editor</code> skill reads the script, scores it against three documentary director profiles, and picks the one whose voice matches the story. The result is B-roll that feels <em>edited</em>, not assembled.</p>
+      <div class="pipeline-grid" style="margin-top: var(--space-2xl);">
+        <div class="pipeline-card">
+          <div class="pipeline-number">Persona A</div>
+          <h3>Adam Curtis</h3>
+          <p>Systems, irony, archive juxtaposition. Picks texture clips that quietly undercut the narration. Works for stories about institutions or ideologies.</p>
+          <span class="pipeline-tag">Systems</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Persona B</div>
+          <h3>Errol Morris</h3>
+          <p>Human portraiture, close-ups, interrogative stillness. Favors faces and objects over action. Works for stories about individuals and their contradictions.</p>
+          <span class="pipeline-tag warm">Portraiture</span>
+        </div>
+        <div class="pipeline-card">
+          <div class="pipeline-number">Persona C</div>
+          <h3>Alex Gibney</h3>
+          <p>Institutional accountability, evidence, tension. Favors documents, newsreels, official footage. Works for stories about power and its consequences.</p>
+          <span class="pipeline-tag warm">Accountability</span>
+        </div>
+      </div>
+      <p style="margin-top: var(--space-xl);">Each clip is assigned a <strong>role</strong> &mdash; <code>anchor</code>, <code>texture</code>, <code>counterpoint</code>, or <code>transition</code> &mdash; with a director-voiced rationale. A validator confirms the proposed distribution matches the chosen director's target role mix. Human review, rename <code>.proposed.ts</code> to <code>broll-manifest.ts</code>, move on.</p>
+    </div>
+  </section>
+
+  <!-- ==================== Validation Harness ==================== -->
+  <section id="validation">
+    <div class="container arch-section">
+      <div class="section-label">New in Phase 5.5</div>
+      <h2>Five checks that must pass before render</h2>
+      <p>Remotion renders are expensive &mdash; minutes per Part, re-renders cost real time. The validation harness runs five static checks on the manifests before you ever spin up the encoder. <strong>&#128308; fatal</strong> blocks; <strong>&#9888; informational</strong> is a warning you can accept.</p>
+      <div class="decisions-list">
+        <div class="decision-row">
+          <div class="decision-key">counts-consistency</div>
+          <div class="decision-value">Sequences, content, and alignment manifests must all agree on line count. Off-by-one errors here would mean subtitles dropping mid-sentence.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">tts-integrity</div>
+          <div class="decision-value">Audio truncation or tail silence exceeding 0.08 amplitude within a 200ms window &mdash; the MiniMax model cut off the sentence before it finished.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">breathing-time</div>
+          <div class="decision-value">Minimum sequence durations: chart &ge; 4s, title &ge; 2.5s, quote &ge; 3.5s. Anything less reads as rushed.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">broll-overlap</div>
+          <div class="decision-value">Two sequences may never share an overlapping time range from the same source file. Visual repetition kills editorial trust.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">text-density</div>
+          <div class="decision-value">B-roll clip start-frame must land before 67% of the text. If the image only arrives after the caption finishes, there's no breathing room.</div>
         </div>
       </div>
     </div>
@@ -1098,6 +1223,22 @@
       <h2>Key Decisions</h2>
       <div class="decisions-list">
         <div class="decision-row">
+          <div class="decision-key">Sequence kind discriminated union</div>
+          <div class="decision-value">A Part is no longer "video with chart overlays" &mdash; it's a sequence of typed entries. Chart, title, and quote kinds use a calm <code>StaticBackground</code> instead of fighting moving B-roll for attention.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">No silent title cards</div>
+          <div class="decision-value">Part titles are their own <code>kind: "title"</code> sequence tied to a narration line. Audio never drops out.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">Auto-director for B-roll</div>
+          <div class="decision-value">The <code>video-editor</code> skill picks Curtis / Morris / Gibney based on story shape. B-roll feels edited, not assembled.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">Pre-render validation harness</div>
+          <div class="decision-value">Five static checks on manifests before the expensive render. Counts, TTS integrity, breathing time, overlap, text density.</div>
+        </div>
+        <div class="decision-row">
           <div class="decision-key">One audio file per part</div>
           <div class="decision-value">Natural prosody &mdash; MiniMax produces better speech when it sees the full paragraph context, not isolated sentences.</div>
         </div>
@@ -1107,19 +1248,15 @@
         </div>
         <div class="decision-row">
           <div class="decision-key">Audio-driven timeline</div>
-          <div class="decision-value">Sequence durations are computed from TTS output. Change the script and timing updates automatically.</div>
+          <div class="decision-value">Sequence durations computed from TTS output. All animations use <code>useTimeScale()</code> so keyframes stay proportional.</div>
+        </div>
+        <div class="decision-row">
+          <div class="decision-key">Gemini 3.1 Flash Lite for vision</div>
+          <div class="decision-value">Swapped in as the default B-roll analyzer after testing alternatives. Fast, cheap, excellent Chinese OCR.</div>
         </div>
         <div class="decision-row">
           <div class="decision-key">TypeScript data, not JSON</div>
           <div class="decision-value">Full type safety, imports, and IDE autocomplete for all content and manifests.</div>
-        </div>
-        <div class="decision-row">
-          <div class="decision-key">React for animations</div>
-          <div class="decision-value">Version-controlled, composable, testable. No After Effects project files to manage.</div>
-        </div>
-        <div class="decision-row">
-          <div class="decision-key">B-roll validation script</div>
-          <div class="decision-value">Catches clip repetition, missing files, and time-range overlaps before render.</div>
         </div>
       </div>
     </div>
@@ -1166,16 +1303,32 @@
         <div class="prompt-card">
           <div class="prompt-phase"><span class="phase-num">04</span>B-Roll</div>
           <div class="prompt-body">
-            <div class="prompt-text">Source B-roll from official channels only. Download with yt-dlp. Analyze each clip with video-describe-fast. Build broll-manifest.ts with zero time overlap.</div>
-            <div class="prompt-hint">Saves <code>.analysis.md</code> beside each <code>.mp4</code>. Runs the overlap validator before declaring done.</div>
+            <div class="prompt-text">Source B-roll from official channels only. Download with yt-dlp. Analyze each clip with video-describe-fast using Gemini 3.1 Flash Lite and the --context flag so it knows what to look for.</div>
+            <div class="prompt-hint">Saves <code>.analysis.md</code> beside each <code>.mp4</code> with OCR and entity inference.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">04.5</span>Editor Pass</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Run the video-editor skill to auto-pick a director persona and tag every B-roll clip with its emotional role. Then review the proposal and promote it.</div>
+            <div class="prompt-hint">Produces <code>broll-manifest.proposed.ts</code> with role tags and director-voiced rationale per clip. Override auto-pick with <code>--director curtis|morris|gibney</code>.</div>
           </div>
         </div>
 
         <div class="prompt-card">
           <div class="prompt-phase"><span class="phase-num">05</span>TTS + Build</div>
           <div class="prompt-body">
-            <div class="prompt-text">Generate TTS with MiniMax at passionate intensity. Then build the Part components with animated overlays and wire them into the MasterComposition.</div>
+            <div class="prompt-text">Generate TTS with MiniMax at passionate intensity. Then build the Part components using sequence kinds &mdash; video, chart, title, quote, ending &mdash; and wire them into the MasterComposition.</div>
             <div class="prompt-hint">Calls <code>generate-tts.ts</code>, writes <code>alignment-manifest.ts</code>, and scaffolds each Part following <code>design.md</code>.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">05.5</span>Validate</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Run the 5-check validation harness before render. Fix anything fatal. Review warnings.</div>
+            <div class="prompt-hint">Calls <code>validate-video.ts</code> with checks for counts, TTS integrity, breathing time, B-roll overlap, and text density.</div>
           </div>
         </div>
 
@@ -1196,11 +1349,14 @@
 <span class="comment"># Preview in Remotion Studio</span>
 <span class="cmd">bun run dev</span>
 
-<span class="comment"># Generate TTS for a video</span>
+<span class="comment"># Generate TTS for a video (MiniMax T2A v2 with word-level timestamps)</span>
 <span class="cmd">bun run scripts/generate-tts.ts --video xiaomi-su7</span>
 
-<span class="comment"># Validate B-roll assignments</span>
-<span class="cmd">bun run scripts/validate-broll.ts</span>
+<span class="comment"># Editor Pass — auto-director B-roll tagging</span>
+<span class="cmd">/video-editor --video xiaomi-su7</span>
+
+<span class="comment"># Pre-render validation harness — 5 checks must pass</span>
+<span class="cmd">bun run scripts/validate-video.ts --video xiaomi-su7</span>
 
 <span class="comment"># Render final video (Chinese + English)</span>
 <span class="cmd">bunx remotion render XiaomiSU7-CN --codec=h264</span>
