@@ -13,7 +13,13 @@
  *   bun run scripts/generate-tts.ts --video xiaomi-su7
  *   bun run scripts/generate-tts.ts --video xiaomi-su7 --lang cn
  *   bun run scripts/generate-tts.ts --video xiaomi-su7 --part part2
+ *   bun run scripts/generate-tts.ts --video xiaomi-su7 --concurrency 4
  *   bun run scripts/generate-tts.ts --video xiaomi-su7 --debug
+ *
+ * Flags:
+ *   --concurrency N   MiniMax API calls run in parallel (default 4).
+ *                     Lower to 1 for strict serial, raise cautiously if
+ *                     MiniMax rate limits allow.
  *
  * Env:
  *   MINIMAX_API_KEY  (required)
@@ -36,6 +42,7 @@ const videoSlug = getFlag("--video");
 const onlyLang = getFlag("--lang") as "cn" | "en" | undefined;
 const onlyPart = getFlag("--part") as string | undefined;
 const debug = hasFlag("--debug");
+const concurrency = Math.max(1, parseInt(getFlag("--concurrency") ?? "4", 10));
 
 if (!videoSlug) {
   console.error("ERROR: --video <slug> is required. Example: --video xiaomi-su7");
@@ -93,29 +100,48 @@ if (!API_KEY) {
 }
 
 // ── Voice Configuration ──────────────────────────
+// Tuned for documentary gravitas: slower pace, dynamic range preserved,
+// strategic silence injected via PAUSE markers below.
+// Reference: Asianometry (~135 WPM, 16% silence) — we sit between that
+// and short-video pace to retain emotional headroom for Lei Jun's arc.
 const VOICE_CONFIG = {
   cn: {
     voice_id: "moss_audio_9c223de9-7ce1-11f0-9b9f-463feaa3106a",
-    speed: 1.03,
-    vol: 1.2,
+    speed: 0.97,
+    vol: 1.0,
     pitch: 1,
     language_boost: "Chinese",
   },
   en: {
-    voice_id: "English_expressive_narrator",
-    speed: 1.05,
-    vol: 1.3,
+    // Senior storyteller, cold/detached delivery — closest match to
+    // Asianometry-style documentary tone in MiniMax's system catalog.
+    voice_id: "English_CaptivatingStoryteller",
+    speed: 0.95,
+    vol: 1.0,
     pitch: 2,
     language_boost: "English",
   },
 } as const;
 
-// Voice intensity/timbre modifiers for passionate delivery
+// Modest emotional reserve — kept for dramatic peaks, not flatlined.
 const VOICE_MODIFY = {
-  intensity: 40,  // more energetic (+30 to +60 range)
-  pitch: 15,      // brighter voice
-  timbre: 10,     // crisper articulation
+  intensity: 15,
+  pitch: 5,
+  timbre: 5,
 };
+
+// MiniMax static-silence markers. Inserted after sentence-final punctuation
+// (mid-line) and as the separator between narration lines.
+// 0.4s = comfortable end-of-sentence breath; 0.7s = paragraph-level beat.
+const PAUSE_INTRA = "<#0.4#>";
+const PAUSE_INTER = "<#0.7#>";
+
+function injectPauses(text: string, isChinese: boolean): string {
+  if (isChinese) {
+    return text.replace(/([。！？])(?=.)/g, `$1${PAUSE_INTRA}`);
+  }
+  return text.replace(/([.!?])(?=\s+\S)/g, `$1${PAUSE_INTRA}`);
+}
 
 const AUDIO_SETTING = {
   sample_rate: 32_000,
@@ -162,6 +188,28 @@ async function downloadBuffer(url: string): Promise<Buffer> {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Download failed: HTTP ${resp.status} for ${url.slice(0, 100)}`);
   return Buffer.from(await resp.arrayBuffer());
+}
+
+/**
+ * Run async tasks with bounded concurrency. Workers pull from a shared index
+ * so slow tasks don't block faster ones. Preserves input-order results.
+ */
+async function runWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  task: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const i = nextIndex++;
+      if (i >= items.length) return;
+      results[i] = await task(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return results;
 }
 
 async function downloadJson(url: string): Promise<unknown> {
@@ -411,65 +459,89 @@ const partsToGenerate = onlyPart
   ? [onlyPart as PartKey]
   : ([...PARTS] as PartKey[]);
 
-let totalCalls = 0;
-
+// Ensure lang dirs exist + manifest slots present
 for (const lang of langsToGenerate) {
   if (!manifest[lang]) manifest[lang] = {};
-  const langDir = path.join(OUTPUT_DIR, lang);
-  await fs.mkdir(langDir, { recursive: true });
-  const isChinese = lang === "cn";
+  await fs.mkdir(path.join(OUTPUT_DIR, lang), { recursive: true });
+}
 
+// Build the task list up front so concurrency-runner can pull from it.
+type Task = {
+  lang: LangKey;
+  partKey: PartKey;
+  rawLines: string[];   // marker-free, used for chunk→line char-position math
+  fullText: string;     // with pause markers, sent to MiniMax
+  lineCount: number;
+};
+const tasks: Task[] = [];
+for (const lang of langsToGenerate) {
+  const isChinese = lang === "cn";
   for (const partKey of partsToGenerate) {
     const partContent = contentMap[lang][partKey];
     if (!partContent) {
       console.warn(`Skipping ${lang}/${partKey} — no content found`);
       continue;
     }
-
-    const lines = partContent.narration;
-    const separator = isChinese ? "" : " ";
-    const fullText = lines.join(separator);
-
-    console.log(
-      `\n[${lang}/${partKey}] Synthesizing ${lines.length} lines (${fullText.length} chars)...`
-    );
-
-    const { audio, chunks } = await synthesizePart(fullText, lang);
-    totalCalls++;
-
-    const audioFileName = `${partKey}-full.mp3`;
-    const audioPath = path.join(langDir, audioFileName);
-    await fs.writeFile(audioPath, audio);
-    console.log(
-      `  Audio: ${audioFileName} (${(audio.length / 1024).toFixed(0)} KB)`
-    );
-
-    const totalDuration = getAudioDuration(audioPath);
-    console.log(`  Duration: ${totalDuration.toFixed(3)}s`);
-
-    const lineTimings = mapChunksToLines(chunks, lines, isChinese, totalDuration);
-    console.log(
-      `  Subtitle chunks: ${chunks.length} → ${lines.length} lines`
-    );
-
-    for (const [key, timing] of Object.entries(lineTimings)) {
-      const dur = (timing.endTime - timing.startTime).toFixed(2);
-      console.log(
-        `    ${key}: ${timing.startTime.toFixed(2)}s – ${timing.endTime.toFixed(2)}s (${dur}s, ${timing.words.length} words)`
-      );
-    }
-
-    manifest[lang][partKey] = {
-      file: `${videoSlug}/audio/${lang}/${audioFileName}`,
-      totalDuration,
-      lines: lineTimings,
-    };
-
-    if (totalCalls < langsToGenerate.length * partsToGenerate.length) {
-      await new Promise((r) => setTimeout(r, 500));
-    }
+    const rawLines = partContent.narration;
+    const augmented = rawLines.map((l) => injectPauses(l, isChinese));
+    const separator = isChinese ? PAUSE_INTER : ` ${PAUSE_INTER} `;
+    tasks.push({
+      lang,
+      partKey,
+      rawLines,
+      fullText: augmented.join(separator),
+      lineCount: rawLines.length,
+    });
   }
 }
+
+console.log(
+  `\nRunning ${tasks.length} TTS tasks with concurrency=${concurrency}...`
+);
+
+let totalCalls = 0;
+
+await runWithConcurrency(tasks, concurrency, async (t) => {
+  const isChinese = t.lang === "cn";
+  const tag = `[${t.lang}/${t.partKey}]`;
+  console.log(
+    `\n${tag} Synthesizing ${t.lineCount} lines (${t.fullText.length} chars w/ pause markers)...`
+  );
+
+  const { audio, chunks } = await synthesizePart(t.fullText, t.lang);
+  totalCalls++;
+
+  const audioFileName = `${t.partKey}-full.mp3`;
+  const audioPath = path.join(OUTPUT_DIR, t.lang, audioFileName);
+  await fs.writeFile(audioPath, audio);
+  console.log(
+    `  ${tag} Audio: ${audioFileName} (${(audio.length / 1024).toFixed(0)} KB)`
+  );
+
+  const totalDuration = getAudioDuration(audioPath);
+  console.log(`  ${tag} Duration: ${totalDuration.toFixed(3)}s`);
+
+  // Use marker-free lines for char-position math — MiniMax positions
+  // are in the stripped text, not the augmented input.
+  const lineTimings = mapChunksToLines(chunks, t.rawLines, isChinese, totalDuration);
+  console.log(
+    `  ${tag} Subtitle chunks: ${chunks.length} → ${t.lineCount} lines`
+  );
+
+  for (const [key, timing] of Object.entries(lineTimings)) {
+    const dur = (timing.endTime - timing.startTime).toFixed(2);
+    console.log(
+      `    ${tag} ${key}: ${timing.startTime.toFixed(2)}s – ${timing.endTime.toFixed(2)}s (${dur}s, ${timing.words.length} words)`
+    );
+  }
+
+  // Single-threaded JS: assignment below is atomic, safe under concurrency.
+  manifest[t.lang][t.partKey] = {
+    file: `${videoSlug}/audio/${t.lang}/${audioFileName}`,
+    totalDuration,
+    lines: lineTimings,
+  };
+});
 
 // ── Write alignment-manifest.ts ──────────────────
 const tsOutput = `// Auto-generated by scripts/generate-tts.ts — do not edit manually.
