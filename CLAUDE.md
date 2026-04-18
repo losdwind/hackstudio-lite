@@ -84,6 +84,7 @@ Do NOT start scriptwriting until the research folder is rich enough. Each video 
 | `web-access` | Full browser automation | Sites that block API access |
 | `fetch-social-profiles` | Download avatars + metadata from X, GitHub, YouTube | People featured in the video |
 | OpenAI Whisper | Audio transcription (split >25MB into 15-min chunks) | Transcribing interviews, podcasts |
+| `video-editor` | Auto-director + emotion-role B-roll design | After Phase 3, before Phase 4 TTS |
 
 ---
 
@@ -117,6 +118,14 @@ Phase 3: B-Roll Sourcing
   → Save .analysis.md files BESIDE each video file in public/<slug>/videos/
   → Create broll-manifest.ts following the B-Roll Allocation Rules below
   → Place videos in public/<slug>/videos/
+
+Phase 3.5: Editor Pass (auto-director)
+  → Run the video-editor skill: `/video-editor --video <slug>`
+  → Skill auto-selects a documentary director persona (Curtis/Morris/Gibney) based on scoring
+  → Produces src/videos/<slug>/data/broll-manifest.proposed.ts with role tags + director-voiced rationale
+  → Validate: `bun run .claude/skills/video-editor/validate-proposal.ts --video <slug>`
+  → Human review, then rename .proposed.ts → broll-manifest.ts
+  → Override with `--director <name>` if auto-pick is wrong
 
 Phase 4: TTS Generation
   → Run: bun run scripts/generate-tts.ts --video <slug>
