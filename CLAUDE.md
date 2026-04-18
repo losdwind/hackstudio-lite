@@ -141,6 +141,12 @@ Phase 5: Build Remotion Components
   → Register in index.tsx, add to Root.tsx
   → Verify design.md compliance: no borders, correct colors, correct blur values
 
+Phase 5.5: Validation Harness
+  → bun run scripts/validate-video.ts --video <slug>
+  → Runs 5 checks: counts-consistency, tts-integrity, breathing-time, broll-overlap, text-density
+  → Must pass (🔴 fatal, ⚠️ informational) before proceeding to Phase 6 render
+  → Use `--skip <check-name>` only when a warning is known-benign for this video
+
 Phase 6: Preview & Render
   → bun run dev (Remotion Studio, press Play for audio)
   → bunx remotion render <CompositionId>-CN --codec=h264
@@ -222,7 +228,7 @@ Full details in `.claude/skills/ai-video-from-script/SKILL.md`.
 - **Narration style**: Must sound SPOKEN not written. Short sentences. Periods and commas only. No em dashes, semicolons, colons, or parentheses. Contractions are good. Think: explaining to a friend over coffee.
 - **Transcription**: For audio >25MB, split into ~15-min mp3 chunks (mono 16kHz) with ffmpeg, transcribe each via OpenAI Whisper (language=zh), combine with timestamps
 - **Design**: Follow `design.md` strictly — no solid borders, glassmorphism on cards (`COLORS.glassSurface`), gradient accents at 135deg, ambient glows (60-80px blur, 6-10% opacity, tinted not pure black), Plus Jakarta Sans headlines + Inter body + Noto Sans SC for CJK, backdrop-blur minimum 20px
-- **Pre-flight checks**: Before TTS generation, verify: (1) content line count matches sequence count per part, (2) every brollKey exists in manifest, (3) alignment/audio manifest line counts match, (4) generate-tts.ts PARTS array includes all parts, (5) design.md compliance across all components
+- **Pre-flight checks**: Before Phase 6 render, run `bun run scripts/validate-video.ts --video <slug>`. It chains: counts-consistency (sequences/content/alignment agree), tts-integrity (no truncation, tail silence ≤ 0.08 amp), breathing-time (chart ≥ 4s, title ≥ 2.5s, quote ≥ 3.5s), broll-overlap (zero overlapping time ranges + kind:"video" cross-check), text-density (B-roll clip start-frames < 67% text). Must pass. Also verify: (1) generate-tts.ts PARTS array includes all parts, (2) design.md compliance across all components.
 
 ## Lessons Learned (from xiaomi-su7 production)
 
