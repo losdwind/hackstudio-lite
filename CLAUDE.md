@@ -164,8 +164,9 @@ src/
 ├── index.ts              # Remotion registerRoot
 ├── index.css             # TailwindCSS
 ├── shared/               # Reusable across ALL videos
-│   ├── components/       # PartRenderer, SubtitleOverlay, VideoBackground, etc.
-│   ├── lib/              # colors, fonts, timing, compute-durations, part-audio, alignment-types
+│   ├── components/       # PartRenderer (kind dispatcher), VideoBackground, StaticBackground, SubtitleOverlay
+│   │   └── renderers/    # Per-kind renderers: VideoSequence, ChartSequence, TitleSequence, QuoteSequence, EndingSequence
+│   ├── lib/              # colors, fonts, timing, compute-durations, part-audio, alignment-types, sequence-types
 │   └── schemas/          # VideoSchema (lang: "cn" | "en")
 └── videos/
     └── <slug>/           # One folder per video (e.g. xiaomi-su7)
@@ -179,7 +180,7 @@ public/
     └── videos/           # B-roll .mp4 files
 
 research/                 # Transcripts, research notes, video analysis (per-video)
-scripts/                  # generate-tts.ts, validate-broll.ts
+scripts/                  # generate-tts.ts, validate-broll.ts, validate-video.ts (+ validators/)
 ```
 
 ### Adding a New Video
@@ -191,7 +192,7 @@ scripts/                  # generate-tts.ts, validate-broll.ts
    - `audio-manifest.ts` — per-line TTS durations (paths: `<slug>/audio/...`)
    - `alignment-manifest.ts` — MiniMax word-level timing (paths: `<slug>/audio/...`)
    - `chart-data.ts` — data for animated visualizations
-3. Create Part components — each imports shared `PartRenderer` + its own data, passes as props
+3. Create Part components — each imports shared `PartRenderer` + `SequenceEntry` type from `src/shared/lib/sequence-types.ts`. Each sequence picks one kind (`video` | `chart` | `title` | `quote` | `ending`). Example: `[{ kind: "title", lineIdx: 0 }, { kind: "video", lineIdx: 1, brollKey: "narration2" }, { kind: "chart", lineIdx: 4, component: MyChart }]`
 4. Create `MasterComposition.tsx` — assembles parts with TransitionSeries
 5. Create `index.tsx` — exports function returning `<Folder>` with all Compositions
 6. Add one line to `Root.tsx`: `{myVideoCompositions()}`
@@ -203,10 +204,11 @@ scripts/                  # generate-tts.ts, validate-broll.ts
 - **Each video's index.tsx is the composition registry** — defines all `<Composition>` entries wrapped in a `<Folder>`.
 - **Audio-driven timeline** — sequence durations derived from TTS audio lengths, never hardcoded.
 - **Every sequence gets narration** — including over animation segments. NO SILENT SEGMENTS EVER.
-- **No silent title cards** — part titles render as fade-in/fade-out overlays on the FIRST narration line (`showTitle: true`), never as separate silent sequences. Narration never stops flowing.
+- **Sequence kinds** — `PartRenderer` is a dispatcher over `SequenceEntry` (`kind: "video" | "chart" | "title" | "quote" | "ending"`). Each kind maps to a focused renderer in `src/shared/components/renderers/`. `video` and `ending` use `VideoBackground` (moving B-roll); `chart` / `title` / `quote` use `StaticBackground` (calm gradient, no competing motion).
+- **No silent title cards** — part titles are their own `kind: "title"` sequence tied to a narration line (typically `lineIdx: 0`). The audio runs throughout; there is never a silent segment.
 - **Animation timing is adaptive** — all overlays use `useTimeScale(designedDuration)` from `shared/lib/timing.ts` so keyframes scale proportionally to the actual sequence duration. Never hardcode absolute frame numbers.
 - **VideoBackground passes startFrom** — `trimBefore={Math.round(startFrom * fps)}` must be on the `<Video>` component. Without this, all clips play from 0:00 regardless of manifest.
-- **Video dim logic** — plain narration sequences show vivid video (overlay 0.25), sequences with Overlay/showTitle dim to 0.7+. The `effectiveOpacity` is computed automatically in PartRenderer.
+- **broll-manifest only references video kinds** — only `kind: "video"` and `kind: "ending"` sequences look up entries in `broll-manifest.ts`. Chart/title/quote sequences never consume broll slots. `scripts/validate-broll.ts` cross-checks this.
 
 ## B-Roll Allocation Rules (CRITICAL)
 
