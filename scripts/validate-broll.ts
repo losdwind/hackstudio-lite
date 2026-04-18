@@ -258,8 +258,10 @@ for (const [file, dur] of Object.entries(videoDurations)) {
     usedSeconds += entry.sourceConsumed;
   }
 
-  const pct = ((usedSeconds / dur) * 100).toFixed(1);
-  const bar = "█".repeat(Math.round(Number(pct) / 5)) + "░".repeat(20 - Math.round(Number(pct) / 5));
+  const pctNum = dur > 0 ? Math.min(100, (usedSeconds / dur) * 100) : 0;
+  const pct = pctNum.toFixed(1);
+  const barLen = Math.max(0, Math.min(20, Math.round(pctNum / 5)));
+  const bar = "█".repeat(barLen) + "░".repeat(20 - barLen);
 
   console.log(
     `  ${file} [${bar}] ${pct}% (${usedSeconds.toFixed(0)}s / ${dur.toFixed(0)}s)`
@@ -294,6 +296,34 @@ for (const [file, dur] of Object.entries(videoDurations)) {
   }
 }
 
+// ── Check 4: kind:"video" cross-reference ────────
+// Every kind:"video" sequence in a Part file must have a matching broll entry.
+console.log("\n═══ Sequence/Broll Cross-Check ═══");
+let crossCheckIssues = 0;
+const componentsDir = path.join(ROOT, "src", "videos", videoSlug, "components");
+for (const partKey of PART_KEYS) {
+  const partPath = path.join(
+    componentsDir,
+    partKey,
+    `${partKey.charAt(0).toUpperCase() + partKey.slice(1)}.tsx`
+  );
+  try {
+    await fs.access(partPath);
+  } catch {
+    continue;
+  }
+  const src = await fs.readFile(partPath, "utf-8");
+  const videoKinds = [...src.matchAll(/kind:\s*"video"[^}]*brollKey:\s*"([^"]+)"/g)].map((m) => m[1]);
+  const partBroll = (brollManifest as Record<string, Record<string, unknown>>)[partKey] || {};
+  for (const brollKey of videoKinds) {
+    if (!partBroll[brollKey]) {
+      console.log(`  🔴 ${partKey}: kind:"video" references missing broll entry "${brollKey}"`);
+      crossCheckIssues++;
+    }
+  }
+}
+if (crossCheckIssues === 0) console.log("  ✅ All kind:\"video\" sequences have broll entries.");
+
 // ── Summary ──────────────────────────────────────
 const totalUsed = entries.reduce((sum, e) => sum + e.sourceConsumed, 0);
 const totalAvailable = Object.values(videoDurations).filter((d) => d > 0).reduce((a, b) => a + b, 0);
@@ -304,3 +334,4 @@ console.log(`  Entries: ${entries.length} broll assignments across ${videoFiles.
 console.log(`  Source used: ${totalUsed.toFixed(0)}s / ${totalAvailable.toFixed(0)}s (${((totalUsed / totalAvailable) * 100).toFixed(1)}%)`);
 console.log(`  Boundary issues: ${boundaryIssues}`);
 console.log(`  Overlap issues: ${overlapIssues}`);
+console.log(`  Cross-check issues: ${crossCheckIssues}`);
