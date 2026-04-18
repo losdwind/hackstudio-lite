@@ -261,28 +261,46 @@ def main():
         md = []
         md.append(f"# Video Description: {filename}")
         md.append("")
-        md.append(f"**Duration:** {fmt_ts(duration)} | "
-                   f"**Frames:** {len(results)} | "
-                   f"**Interval:** {args.interval}s | "
-                   f"**Processing time:** {total_time:.1f}s | "
-                   f"**Model:** {MODEL}")
+        header = (
+            f"**Duration:** {fmt_ts(duration)} | "
+            f"**Frames:** {len(results)} | "
+            f"**Interval:** {args.interval}s | "
+            f"**Processing time:** {total_time:.1f}s | "
+            f"**Model:** {MODEL}"
+        )
+        if args.context:
+            header += f" | **Context:** {args.context}"
+        md.append(header)
         md.append("")
+
         md.append("## Summary")
         md.append("")
         md.append(summary)
         md.append("")
+
+        # Aggregate unique entities across frames
+        all_entities = sorted({e for r in results for e in r["entities"]})
+        if all_entities:
+            md.append("## Identified Entities")
+            md.append("")
+            md.append(", ".join(all_entities))
+            md.append("")
+
         md.append("## Frame-by-Frame Timeline")
         md.append("")
-        md.append("| Time | Description |")
-        md.append("|------|-------------|")
+        md.append("| Time | Visual | On-screen Text | Entities |")
+        md.append("|------|--------|----------------|----------|")
         for r in results:
-            desc = r["description"].replace("|", "\\|").replace("\n", " ")
-            md.append(f"| {fmt_ts(r['timestamp'])} | {desc} |")
+            visual = r["visual"].replace("|", "\\|").replace("\n", " ")
+            ocr = r["ocr_text"].replace("|", "\\|").replace("\n", " ")
+            ents = ", ".join(r["entities"])
+            md.append(f"| {fmt_ts(r['timestamp'])} | {visual} | {ocr} | {ents} |")
         md.append("")
         md.append("---")
-        md.append(f"*Generated in {total_time:.1f}s ({t_extract:.1f}s extract + {t_api_done:.1f}s API) "
-                   f"using {total_tokens} tokens across {len(results)} frames "
-                   f"with {args.workers} parallel workers on Groq.*")
+        md.append(
+            f"*Generated in {total_time:.1f}s ({t_extract:.1f}s extract + {t_api_done:.1f}s API) "
+            f"using {total_tokens} tokens across {len(results)} frames.*"
+        )
 
         output = "\n".join(md)
 
