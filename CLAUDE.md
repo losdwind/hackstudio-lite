@@ -1,3 +1,5 @@
+ALWAYS ANSWER in CHINESE
+
 # hackstudio-pro
 
 Remotion video production studio — bilingual (CN/EN) YouTube documentaries with TTS voiceover, animated data visualizations, B-roll video backgrounds, and synced captions. Designed to produce 100+ videos at scale.
@@ -6,11 +8,12 @@ Remotion video production studio — bilingual (CN/EN) YouTube documentaries wit
 
 This channel decodes global industries from a China perspective. Not just what is happening — but why China makes different decisions. From EVs and AI to geopolitics and tech competition, we explore how China and the US approach the same problems — and why the answers are often completely different.
 
+
 ## Stack
 - Remotion 4.0.448, React 19, TailwindCSS v4, TypeScript
 - TTS: MiniMax T2A v2 (speech-2.8-hd) with word-level subtitle timestamps + `voice_modify` for passionate delivery
 - Transcription: OpenAI Whisper (split long audio into ~15-min chunks, language=zh)
-- Video analysis: video-describe-fast skill (Llama 4 Scout via OpenRouter — NOT Qwen which leaks chain-of-thought)
+- Video analysis: video-describe-fast skill — pass `--context "<what this video is about>"` to get OCR + identity inference (not just visual description). Default model: Llama 4 Scout via OpenRouter.
 - Design system: `design.md` — "Precision Editorial" rules (MUST follow for ALL components)
 
 ## Design System Compliance (NON-NEGOTIABLE)
@@ -75,7 +78,7 @@ Do NOT start scriptwriting until the research folder is rich enough. Each video 
 | `tavily-search` | Quick web search | Fact-checking individual claims |
 | `tavily-extract` | Extract content from specific URLs | Reading full articles |
 | `tavily-crawl` | Crawl entire sites | Gathering all articles from a source |
-| `video-describe-fast` | Frame-by-frame video analysis | Analyzing B-roll and source videos |
+| `video-describe-fast` | Frame-by-frame visual + OCR + entity extraction | Analyzing B-roll and source videos (use `--context` for identity-aware output) |
 | `media-downloader` | Search and download images/video clips | Finding visual assets |
 | `notebooklm` | Query uploaded documents via Gemini | Querying compiled research |
 | `web-access` | Full browser automation | Sites that block API access |

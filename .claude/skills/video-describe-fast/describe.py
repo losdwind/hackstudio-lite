@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Fast video description using Groq API vision models.
-Extracts frames with ffmpeg, sends all frames in parallel to Groq, outputs markdown.
+Fast video description using OpenRouter vision models.
+Extracts frames with ffmpeg, sends all frames in parallel to the API, outputs markdown.
 
 Usage:
     python3 describe.py video.mp4 [--interval 2] [--output result.md]
-    API_KEY=gsk_... python3 describe.py video.mp4
+    OPENROUTER_API_KEY=sk-or-... python3 describe.py video.mp4
 """
 
 import argparse
@@ -201,11 +201,11 @@ def _md_cell(s: str) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fast video description via Groq vision API")
+    parser = argparse.ArgumentParser(description="Fast video description via OpenRouter vision API")
     parser.add_argument("video", help="Path to video file")
     parser.add_argument("--interval", type=float, default=2.0, help="Seconds between frames (default: 2)")
     parser.add_argument("--output", "-o", help="Save markdown to file (default: stdout)")
-    parser.add_argument("--model", default=MODEL, help=f"Groq vision model (default: {MODEL})")
+    parser.add_argument("--model", default=MODEL, help=f"Vision model (default: {MODEL})")
     parser.add_argument("--workers", type=int, default=MAX_WORKERS, help=f"Parallel requests (default: {MAX_WORKERS})")
     parser.add_argument(
         "--context",
@@ -215,9 +215,8 @@ def main():
     args = parser.parse_args()
 
     if not API_KEY:
-        print("Error: No API key set. Set one of:", file=sys.stderr)
+        print("Error: No API key set. Set:", file=sys.stderr)
         print("  export OPENROUTER_API_KEY='sk-or-...'", file=sys.stderr)
-        print("  export GROQ_API_KEY='gsk_...'", file=sys.stderr)
         sys.exit(1)
 
     if not os.path.exists(args.video):

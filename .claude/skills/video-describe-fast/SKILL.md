@@ -2,7 +2,8 @@
 name: video-describe-fast
 description: |
   Fast video description via OpenRouter API. Extracts frames with ffmpeg, sends them
-  in parallel to a vision model, returns markdown with frame-by-frame timeline and summary.
+  in parallel to a vision model, returns markdown with visual + OCR text + identified
+  entities per frame, plus a context-aware summary.
   ~72s for a 5-min video. No GPU server needed.
   Triggers: "describe video", "video describe", "analyze video", "/video-describe-fast"
 ---
@@ -26,6 +27,7 @@ Extract from the user's message:
 - **video_path**: Path to the video file (required). Resolve relative paths from cwd.
 - **interval**: Seconds between frame captures (default: `2`).
 - **output_path**: Where to save the markdown (optional — default: print to stdout).
+- **context**: Optional video context ("Lei Jun's SU7 launch event") — injected into prompts so the model can identify people, brands, and products by name instead of generic descriptions like "a middle-aged man".
 
 ### Step 2: Run the script
 
@@ -33,6 +35,7 @@ Extract from the user's message:
 python3 .claude/skills/video-describe-fast/describe.py \
   "{VIDEO_PATH}" \
   --interval {INTERVAL} \
+  --context "{CONTEXT}" \
   --workers 10 \
   --output "{OUTPUT_PATH}"
 ```
@@ -52,17 +55,17 @@ OPENROUTER_API_KEY="sk-or-..." python3 .claude/skills/video-describe-fast/descri
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENROUTER_API_KEY` | Yes | — | OpenRouter API key (`sk-or-...`) |
-| `VISION_MODEL` | No | `qwen/qwen3.5-9b` | Vision model to use |
+| `VISION_MODEL` | No | `meta-llama/llama-4-scout-17b-16e-instruct` | Vision model to use |
 | `VISION_API_URL` | No | `https://openrouter.ai/api/v1/chat/completions` | API endpoint |
 | `VISION_MAX_WORKERS` | No | `10` | Parallel request count |
 
 ## Changing the model
 
-Override via env var or `--model` flag:
+The default model is `meta-llama/llama-4-scout-17b-16e-instruct` (clean JSON output, handles OCR well in Chinese + English). Override via env var or `--model` flag:
 
 ```bash
-# Use Llama 4 Scout (cleaner output, no thinking leak)
-VISION_MODEL="meta-llama/llama-4-scout-17b-16e-instruct" python3 .claude/skills/video-describe-fast/describe.py video.mp4
+# Fall back to Qwen 3.5 9B (cheaper but produces shallower OCR and can leak chain-of-thought)
+VISION_MODEL="qwen/qwen3.5-9b" python3 .claude/skills/video-describe-fast/describe.py video.mp4
 ```
 
 ## Performance
@@ -79,4 +82,5 @@ VISION_MODEL="meta-llama/llama-4-scout-17b-16e-instruct" python3 .claude/skills/
 /video-describe-fast public/videos/my-video.mp4
 /video-describe-fast ./clip.mp4 interval=4
 /video-describe-fast ./demo.mp4 output=analysis.md
+/video-describe-fast public/videos/leijun-stage.mp4 context="Lei Jun SU7 launch, March 2024"
 ```
