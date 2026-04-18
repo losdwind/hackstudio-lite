@@ -1,6 +1,76 @@
+import { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { COLORS } from "../lib/colors";
 import type { WordTiming } from "../lib/alignment-types";
+
+// Max chars per displayed caption chunk. Chosen so a chunk always fits on one
+// line at fontSize 40 inside the 1400px container (CJK glyphs ~42px wide,
+// Latin avg ~18px). MiniMax's "word" entries for Chinese are often whole
+// sentences, so we re-chunk at punctuation and redistribute timing.
+const MAX_CJK_CHARS = 18;
+const MAX_LATIN_CHARS = 48;
+const PUNCT_SPLIT_RE = /([，。、；：！？,.!?;:\n]+)/g;
+
+function splitWordIntoChunks(word: WordTiming): WordTiming[] {
+  const text = word.text;
+  const isCJK = /[\u4e00-\u9fff]/.test(text);
+  const maxLen = isCJK ? MAX_CJK_CHARS : MAX_LATIN_CHARS;
+
+  if (text.length <= maxLen) return [word];
+
+  // 1) Split on punctuation, re-attach punctuation to the preceding fragment.
+  const raw = text.split(PUNCT_SPLIT_RE).filter((s) => s.length > 0);
+  const merged: string[] = [];
+  for (const piece of raw) {
+    if (PUNCT_SPLIT_RE.test(piece) && merged.length > 0) {
+      merged[merged.length - 1] += piece;
+      PUNCT_SPLIT_RE.lastIndex = 0;
+    } else {
+      merged.push(piece);
+      PUNCT_SPLIT_RE.lastIndex = 0;
+    }
+  }
+
+  // 2) Any fragment still too long: hard-split at maxLen (or on space for Latin).
+  const final: string[] = [];
+  for (const frag of merged) {
+    if (frag.length <= maxLen) {
+      final.push(frag);
+      continue;
+    }
+    if (isCJK) {
+      for (let i = 0; i < frag.length; i += maxLen) {
+        final.push(frag.slice(i, i + maxLen));
+      }
+    } else {
+      // Word-safe wrap for Latin text
+      const words = frag.split(/(\s+)/);
+      let buf = "";
+      for (const w of words) {
+        if ((buf + w).length > maxLen && buf.trim().length > 0) {
+          final.push(buf.trim());
+          buf = w;
+        } else {
+          buf += w;
+        }
+      }
+      if (buf.trim().length > 0) final.push(buf.trim());
+    }
+  }
+
+  // 3) Distribute [word.start, word.end] across chunks, weighted by char count.
+  const totalChars = final.reduce((acc, s) => acc + s.length, 0) || 1;
+  const totalDur = word.end - word.start;
+  const out: WordTiming[] = [];
+  let cursor = 0;
+  for (const seg of final) {
+    const s = word.start + (cursor / totalChars) * totalDur;
+    cursor += seg.length;
+    const e = word.start + (cursor / totalChars) * totalDur;
+    out.push({ text: seg, start: s, end: e });
+  }
+  return out;
+}
 
 type SubtitleOverlayProps = {
   fontFamily: string;
@@ -48,25 +118,34 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = (props) => {
   const useWordTimestamps = props.words && props.words.length > 0;
 
   // ── Word-timestamp mode ────────────────────────
+  // Hooks must run unconditionally; compute chunks regardless of mode.
+  const chunks = useMemo(() => {
+    if (!props.words || props.words.length === 0) return [];
+    return props.words.flatMap(splitWordIntoChunks);
+  }, [props.words]);
+
   if (useWordTimestamps) {
-    const { words, lineStartTime } = props;
+    const { lineStartTime } = props;
 
     // Find the currently active chunk to display (only one at a time)
-    const activeWord = words.find((word) => {
-      const startFrame = Math.round((word.start - lineStartTime) * fps);
-      const endFrame = Math.round((word.end - lineStartTime) * fps);
+    const activeChunk = chunks.find((c) => {
+      const startFrame = Math.round((c.start - lineStartTime) * fps);
+      const endFrame = Math.round((c.end - lineStartTime) * fps);
       return frame >= startFrame && frame < endFrame;
     });
 
-    // Fall back to the last chunk if past all words
-    const displayWord =
-      activeWord ??
-      words.findLast((word) => {
-        const endFrame = Math.round((word.end - lineStartTime) * fps);
-        return frame >= endFrame;
-      });
+    // Fall back to the last chunk if past all chunks
+    let fallbackChunk: WordTiming | undefined;
+    for (let i = chunks.length - 1; i >= 0; i--) {
+      const endFrame = Math.round((chunks[i].end - lineStartTime) * fps);
+      if (frame >= endFrame) {
+        fallbackChunk = chunks[i];
+        break;
+      }
+    }
+    const displayChunk = activeChunk ?? fallbackChunk;
 
-    if (!displayWord) return null;
+    if (!displayChunk) return null;
 
     return (
       <AbsoluteFill
@@ -84,7 +163,8 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = (props) => {
             WebkitBackdropFilter: "blur(20px)",
             borderRadius: 12,
             padding: "14px 28px",
-            maxWidth: 1400,
+            maxWidth: "min(1400px, 92vw)",
+            display: "inline-block",
           }}
         >
           <div
@@ -92,13 +172,15 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = (props) => {
               fontSize,
               fontWeight: 600,
               fontFamily,
-              lineHeight: 1.5,
+              lineHeight: 1.4,
               textAlign: "center",
-              whiteSpace: "pre-wrap",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
               color: highlightColor,
             }}
           >
-            {displayWord.text}
+            {displayChunk.text}
           </div>
         </div>
       </AbsoluteFill>
@@ -106,20 +188,35 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = (props) => {
   }
 
   // ── Legacy even-distribution mode ──────────────
+  // Re-use the chunk/redistribute strategy: treat the whole line as one
+  // WordTiming, split into single-line chunks, show one at a time.
   const { text, audioDuration } = props as {
     text: string;
     audioDuration: number;
   };
-  const isChinese = /[\u4e00-\u9fff]/.test(text);
-  const tokens = isChinese
-    ? (text.match(/.{1,4}/g) || [text])
-    : text.split(/(\s+)/).filter(Boolean);
+  const legacyChunks = splitWordIntoChunks({
+    text,
+    start: 0,
+    end: audioDuration,
+  });
 
-  const contentTokens = tokens.filter((t) => t.trim().length > 0);
-  const totalDurationFrames = Math.ceil(audioDuration * fps);
-  const tokenDuration = totalDurationFrames / contentTokens.length;
+  const activeLegacy = legacyChunks.find((c) => {
+    const startFrame = Math.round(c.start * fps);
+    const endFrame = Math.round(c.end * fps);
+    return frame >= startFrame && frame < endFrame;
+  });
 
-  let contentIdx = 0;
+  let fallbackLegacy: WordTiming | undefined;
+  for (let i = legacyChunks.length - 1; i >= 0; i--) {
+    const endFrame = Math.round(legacyChunks[i].end * fps);
+    if (frame >= endFrame) {
+      fallbackLegacy = legacyChunks[i];
+      break;
+    }
+  }
+  const displayLegacy = activeLegacy ?? fallbackLegacy;
+
+  if (!displayLegacy) return null;
 
   return (
     <AbsoluteFill
@@ -137,7 +234,8 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = (props) => {
           WebkitBackdropFilter: "blur(20px)",
           borderRadius: 12,
           padding: "14px 28px",
-          maxWidth: 1400,
+          maxWidth: "min(1400px, 92vw)",
+          display: "inline-block",
         }}
       >
         <div
@@ -145,44 +243,15 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = (props) => {
             fontSize,
             fontWeight: 600,
             fontFamily,
-            lineHeight: 1.5,
+            lineHeight: 1.4,
             textAlign: "center",
-            whiteSpace: "pre-wrap",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            color: highlightColor,
           }}
         >
-          {tokens.map((token, i) => {
-            const isWhitespace = token.trim().length === 0;
-
-            if (isWhitespace) {
-              return (
-                <span key={i} style={{ color: COLORS.textPrimary }}>
-                  {token}
-                </span>
-              );
-            }
-
-            const tokenStart = contentIdx * tokenDuration;
-            const tokenEnd = (contentIdx + 1) * tokenDuration;
-            contentIdx++;
-
-            const isActive = frame >= tokenStart && frame < tokenEnd;
-            const isPast = frame >= tokenEnd;
-
-            return (
-              <span
-                key={i}
-                style={{
-                  color: isActive
-                    ? highlightColor
-                    : isPast
-                      ? COLORS.textPrimary
-                      : COLORS.secondary,
-                }}
-              >
-                {token}
-              </span>
-            );
-          })}
+          {displayLegacy.text}
         </div>
       </div>
     </AbsoluteFill>

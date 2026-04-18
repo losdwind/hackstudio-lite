@@ -126,21 +126,42 @@ A cinematic visual language inspired by modern data journalism:
 ## Quick Start
 
 ```bash
-# Install dependencies
+# 1. Install Git LFS (one-time, system-wide) — required before cloning
+#    macOS:  brew install git-lfs
+#    Ubuntu: sudo apt install git-lfs
+git lfs install
+
+# 2. Clone + fetch media binaries
+git clone git@github.com:losdwind/hackstudio-lite.git
+cd hackstudio-lite
+git lfs pull              # materializes .mp3 / .mp4 LFS pointers into real files
+
+# 3. Install JS dependencies
 bun install
 
-# Preview in Remotion Studio
+# 4. Preview in Remotion Studio
 bun run dev
 
-# Generate TTS for a video
+# 5. Generate TTS for a video
 bun run scripts/generate-tts.ts --video xiaomi-su7
 
-# Validate B-roll assignments
+# 6. Validate B-roll assignments
 bun run scripts/validate-broll.ts
 
-# Render final video
+# 7. Render final video
 bunx remotion render XiaomiSU7-CN --codec=h264
 ```
+
+### Git LFS is mandatory
+
+All B-roll videos (`public/<slug>/videos/*.mp4`) and TTS audio (`public/<slug>/audio/**/*.mp3`) are stored via [Git LFS](https://git-lfs.com). If you clone without LFS installed — or with `GIT_LFS_SKIP_SMUDGE=1` set — the working tree will contain 130-byte pointer text files instead of the actual media, and Remotion will fail at playback with:
+
+```
+DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed
+```
+
+**Diagnosis:** `ls -la public/<slug>/videos/*.mp4` — if files are ~130 bytes, they are pointers.
+**Fix:** `git lfs install && git lfs pull`.
 
 ## License
 

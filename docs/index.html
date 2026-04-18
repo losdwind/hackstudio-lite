@@ -418,11 +418,14 @@
       background: var(--surface-container-high);
       border-radius: var(--radius-lg);
       padding: var(--space-xl);
+      margin: 0;
       font-family: 'SF Mono', 'Fira Code', monospace;
       font-size: 0.82rem;
       line-height: 1.8;
       color: var(--text-muted);
       overflow-x: auto;
+      white-space: pre;
+      tab-size: 4;
     }
 
     .arch-tree .dir  { color: var(--tertiary); }
@@ -659,6 +662,103 @@
     }
 
     /* ============================================
+       Prompt Flow (agent-driven quickstart)
+       ============================================ */
+    .prereq-block {
+      margin-top: var(--space-xl);
+      padding: var(--space-md) var(--space-xl);
+      background: var(--surface-container-low);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+
+    .prereq-block strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .prompt-flow {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+
+    .prompt-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg) var(--space-xl);
+      display: grid;
+      grid-template-columns: 8rem 1fr;
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .prompt-phase {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding-top: 0.35rem;
+    }
+
+    .prompt-phase .phase-num {
+      color: var(--primary);
+      font-weight: 700;
+      margin-right: var(--space-xs);
+    }
+
+    .prompt-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      min-width: 0;
+    }
+
+    .prompt-text {
+      color: var(--text-primary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+
+    .prompt-text::before {
+      content: '> ';
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .prompt-hint {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    .commands-heading {
+      margin-top: var(--space-3xl);
+      margin-bottom: var(--space-md);
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 720px) {
+      .prompt-card {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+        padding: var(--space-md) var(--space-lg);
+      }
+    }
+
+    /* ============================================
        Footer
        ============================================ */
     footer {
@@ -855,8 +955,7 @@
       <h2>Every video is self-contained</h2>
       <p>Shared rendering infrastructure is reused across all videos. Adding a new video = new folder + data files + one import.</p>
       <div class="arch-layout">
-        <div class="arch-tree">
-<span class="dir">src/</span>
+        <pre class="arch-tree"><span class="dir">src/</span>
 <span class="dir">&boxvr;&boxh;&boxh; shared/</span>               <span class="comment"># Reusable across ALL videos</span>
 <span class="file">&boxvr;   &boxvr;&boxh;&boxh; components/</span>     <span class="comment"># PartRenderer, SubtitleOverlay...</span>
 <span class="file">&boxvr;   &boxvr;&boxh;&boxh; lib/</span>            <span class="comment"># colors, fonts, timing, audio math</span>
@@ -869,8 +968,7 @@
 
 <span class="dir">public/&lt;slug&gt;/</span>          <span class="comment"># Assets namespaced per video</span>
 <span class="file">    &boxvr;&boxh;&boxh; audio/{cn,en}/</span>  <span class="comment"># TTS .mp3 files</span>
-<span class="file">    &boxur;&boxh;&boxh; videos/</span>         <span class="comment"># B-roll .mp4 files</span>
-        </div>
+<span class="file">    &boxur;&boxh;&boxh; videos/</span>         <span class="comment"># B-roll .mp4 files</span></pre>
         <div class="arch-principles">
           <div class="principle">
             <h3><span class="node"></span>&ensp;Audio-Driven Timeline</h3>
@@ -1034,6 +1132,63 @@
         <div class="section-label">Get Started</div>
       </div>
       <h2>Quick Start</h2>
+      <p>Open this repo in Claude Code, Cursor, or any IDE with an AI agent. Tell it what video you want to make. It walks the pipeline with you &mdash; research, script, B-roll, TTS, render.</p>
+
+      <div class="prereq-block">
+        <strong>Prerequisites.</strong> Bun installed locally. Claude Code (or another agent-capable IDE) configured. API keys for MiniMax TTS, OpenAI Whisper, and OpenRouter in your shell environment.
+      </div>
+
+      <div class="prompt-flow">
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">01</span>Concept</div>
+          <div class="prompt-body">
+            <div class="prompt-text">I want to make a video about Xiaomi SU7. Before any research, develop the editorial angle. What's the gap between how Chinese and Western audiences see this car?</div>
+            <div class="prompt-hint">Claude writes <code>video-concept.md</code> &mdash; the story spine, tone, and Part structure. Never start research without this.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">02</span>Research</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Research this across both language ecosystems. Use agent-reach for Bilibili, Weibo, WeChat, Xueqiu. Use tavily-research for the English side. Build the dossier in research/xiaomi-su7/.</div>
+            <div class="prompt-hint">Produces <code>transcript.md</code>, <code>facts.md</code>, <code>perspectives.md</code>, <code>visuals.md</code> &mdash; triangulated across 3+ sources per claim.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">03</span>Script</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Draft the bilingual script from the research. Four to five Parts. Seven to ten lines each. Make it sound spoken, not written. No em dashes.</div>
+            <div class="prompt-hint">Writes <code>content-cn.ts</code>, <code>content-en.ts</code>, and <code>chart-data.ts</code> with verified values.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">04</span>B-Roll</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Source B-roll from official channels only. Download with yt-dlp. Analyze each clip with video-describe-fast. Build broll-manifest.ts with zero time overlap.</div>
+            <div class="prompt-hint">Saves <code>.analysis.md</code> beside each <code>.mp4</code>. Runs the overlap validator before declaring done.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">05</span>TTS + Build</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Generate TTS with MiniMax at passionate intensity. Then build the Part components with animated overlays and wire them into the MasterComposition.</div>
+            <div class="prompt-hint">Calls <code>generate-tts.ts</code>, writes <code>alignment-manifest.ts</code>, and scaffolds each Part following <code>design.md</code>.</div>
+          </div>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-phase"><span class="phase-num">06</span>Render</div>
+          <div class="prompt-body">
+            <div class="prompt-text">Render both language versions to mp4. Add --gl=angle --concurrency=1 if any Part contains a Mapbox map.</div>
+            <div class="prompt-hint">Outputs broadcast-ready <code>.mp4</code> files in both CN and EN.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="commands-heading">Commands the agent runs for you</div>
       <div class="quickstart-block">
 <pre><span class="comment"># Install dependencies</span>
 <span class="cmd">bun install</span>
