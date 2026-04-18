@@ -153,21 +153,31 @@ def describe_frame(path: str, timestamp: float, context: str = "") -> dict:
             return {"timestamp": timestamp, "elapsed": elapsed, "tokens": 0, "visual": f"(error: {e})", "ocr_text": "", "entities": []}
 
 
-def summarize(descriptions: list[dict]) -> str:
-    timeline = "\n".join(
-        f"- [{fmt_ts(d['timestamp'])}] {d['description']}"
-        for d in descriptions
+def summarize(descriptions: list[dict], context: str = "") -> str:
+    """Aggregate frames into a narrative summary, privileging OCR and entities."""
+    lines = []
+    for d in descriptions:
+        ocr = f' | text: "{d["ocr_text"]}"' if d["ocr_text"] else ""
+        ents = f' | entities: {", ".join(d["entities"])}' if d["entities"] else ""
+        lines.append(f'- [{fmt_ts(d["timestamp"])}] {d["visual"]}{ocr}{ents}')
+    timeline = "\n".join(lines)
+
+    context_line = f"Video context: {context}\n\n" if context else ""
+    prompt = (
+        f"{context_line}"
+        "Based on this frame-by-frame timeline (including OCR text and identified entities), "
+        "write a concise 4-6 sentence summary of what this video is about. "
+        "Privilege names, dates, and numbers from the OCR text and entities list. "
+        "If the same person appears across frames, name them once and refer consistently.\n\n"
+        f"{timeline}"
     )
+
     payload = json.dumps({
         "model": MODEL,
-        "messages": [{
-            "role": "user",
-            "content": f"Based on these video frame descriptions, write a concise 3-5 sentence summary of what this video is about:\n\n{timeline}",
-        }],
-        "max_tokens": 300,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 400,
         "temperature": 0.3,
     }).encode()
-
     req = urllib.request.Request(API_URL, data=payload, headers={
         "Content-Type": "application/json",
         "Authorization": f"Bearer {API_KEY}",
@@ -242,7 +252,7 @@ def main():
 
         # Generate summary
         print("  Generating summary...", file=sys.stderr)
-        summary = summarize(results)
+        summary = summarize(results, args.context)
 
         total_time = time.time() - t_start
         total_tokens = sum(r["tokens"] for r in results)
