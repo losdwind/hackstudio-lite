@@ -1,51 +1,16 @@
-/**
- * Data-driven Part renderer.
- *
- * Each Part passes a sequence config describing its narration order.
- * Title/subtitle appears as a fade-in/fade-out overlay on the FIRST narration
- * line — never as a separate silent sequence. The narration never stops flowing.
- *
- * The renderer handles both audio modes (MiniMax continuous / edge-tts per-line).
- */
-
 import { AbsoluteFill, Sequence, staticFile } from "remotion";
 import { Audio } from "@remotion/media";
-import { SectionTitle } from "./SectionTitle";
-import { VideoBackground } from "./VideoBackground";
-import { NarrationAudio } from "./NarrationAudio";
-import { SubtitleOverlay } from "./SubtitleOverlay";
+import { VideoSequence } from "./renderers/VideoSequence";
+import { ChartSequence } from "./renderers/ChartSequence";
+import { TitleSequence } from "./renderers/TitleSequence";
+import { QuoteSequence } from "./renderers/QuoteSequence";
+import { EndingSequence } from "./renderers/EndingSequence";
 import type { Lang } from "../schemas/video-schema";
+import type { SequenceEntry } from "../lib/sequence-types";
 import { getDisplayFont, getBodyFont } from "../lib/fonts";
 import type { PartAudioConfig } from "../lib/part-audio";
 
-// ── Sequence config types ────────────────────────
-
-export type SequenceEntry =
-  | {
-      type: "narration";
-      /** Index into content.narration[] (0-based) */
-      lineIdx: number;
-      /** Key in brollManifest[partKey] */
-      brollKey: string;
-      /** Optional animation component rendered over the broll */
-      Overlay?: React.ComponentType<{ lang: Lang }>;
-      /** Override overlay darkness (default 0.7, use 0.8+ when Overlay present) */
-      overlayOpacity?: number;
-      /** Show part title overlay on this narration (typically first line) */
-      showTitle?: boolean;
-    }
-  | {
-      type: "ending";
-      brollKey: string;
-      Overlay: React.ComponentType<{ lang: Lang }>;
-      overlayOpacity?: number;
-    };
-
-// ── Constants ────────────────────────────────────
-
 const ENDING_DUR = 300;
-
-// ── Component ────────────────────────────────────
 
 export type PartContent = {
   title: string;
@@ -66,7 +31,6 @@ type PartRendererProps = {
 
 export const PartRenderer: React.FC<PartRendererProps> = ({
   lang,
-  partKey,
   sequences,
   content: c,
   broll,
@@ -75,9 +39,11 @@ export const PartRenderer: React.FC<PartRendererProps> = ({
   const displayFont = getDisplayFont(lang);
   const bodyFont = getBodyFont(lang);
 
-  // ── Pre-compute narration line keys for duration lookups ──
+  // Narration sequences carry lineIdx; ending does not.
   const narrationMeta = sequences
-    .map((seq, i) => (seq.type === "narration" ? { idx: i, lineKey: `line${seq.lineIdx + 1}` } : null))
+    .map((seq, i) =>
+      seq.kind !== "ending" ? { idx: i, lineKey: `line${seq.lineIdx + 1}` } : null
+    )
     .filter((x): x is { idx: number; lineKey: string } => x !== null);
 
   const getNextLineKey = (seqIndex: number): string | null => {
@@ -87,11 +53,9 @@ export const PartRenderer: React.FC<PartRendererProps> = ({
       : null;
   };
 
-  // ── Build sequences ────────────────────────────
   let t = 0;
   const elements: React.ReactNode[] = [];
 
-  // Continuous mode: single Audio at part level, starts immediately (no title gap)
   if (audio.mode === "continuous") {
     elements.push(
       <Sequence key="part-audio" from={0} durationInFrames={audio.totalAudioFrames}>
@@ -103,95 +67,104 @@ export const PartRenderer: React.FC<PartRendererProps> = ({
   for (let i = 0; i < sequences.length; i++) {
     const seq = sequences[i];
 
-    // ── Ending (last sequence, over narration audio that's still playing) ──
-    if (seq.type === "ending") {
+    if (seq.kind === "ending") {
       const b = broll[seq.brollKey];
       elements.push(
         <Sequence key={`seq-${i}`} from={t} durationInFrames={ENDING_DUR}>
-          <VideoBackground
-            src={b.file}
-            startFrom={b.startFrom}
-            overlayOpacity={seq.overlayOpacity}
+          <EndingSequence
+            lang={lang}
+            brollFile={b.file}
+            brollStartFrom={b.startFrom}
+            videoOpacity={seq.videoOpacity}
+            Component={seq.component}
           />
-          <seq.Overlay lang={lang} />
         </Sequence>
       );
       t += ENDING_DUR;
       continue;
     }
 
-    // ── Narration (with optional title overlay + animation overlay) ──
     const lineKey = `line${seq.lineIdx + 1}`;
     const nextLineKey = getNextLineKey(i);
-    const b = broll[seq.brollKey];
 
-    // Compute video dim level:
-    //   - Explicit overlayOpacity from sequence config takes priority
-    //   - Overlay or title present → dim to 0.7 for readability
-    //   - Plain narration → undefined (VideoBackground default 0.25, vivid video)
-    const hasVisualOverlay = !!(seq.Overlay || seq.showTitle);
-    const effectiveOpacity = seq.overlayOpacity ?? (hasVisualOverlay ? 0.7 : undefined);
+    const line =
+      audio.mode === "continuous" ? audio.alignment.lines[lineKey] : undefined;
+    const legacyAudio =
+      audio.mode === "per-line" ? audio.legacy[lineKey] : undefined;
+    const fallbackText =
+      audio.mode === "per-line" ? c.narration[seq.lineIdx] : undefined;
 
-    if (audio.mode === "continuous") {
-      const line = audio.alignment.lines[lineKey];
-      const duration = audio.lineDur(lineKey, nextLineKey);
+    const duration =
+      audio.mode === "continuous"
+        ? audio.lineDur(lineKey, nextLineKey)
+        : legacyAudio
+          ? audio.dur(legacyAudio.duration)
+          : 0;
 
-      elements.push(
-        <Sequence key={`seq-${i}`} from={t} durationInFrames={duration}>
-          <VideoBackground
-            src={b.file}
-            startFrom={b.startFrom}
-            overlayOpacity={effectiveOpacity}
+    let body: React.ReactNode;
+    switch (seq.kind) {
+      case "video": {
+        const b = broll[seq.brollKey];
+        body = (
+          <VideoSequence
+            lang={lang}
+            brollFile={b.file}
+            brollStartFrom={b.startFrom}
+            videoOpacity={seq.videoOpacity}
+            line={line}
+            legacyAudio={legacyAudio}
+            fallbackText={fallbackText}
+            bodyFont={bodyFont}
           />
-          {seq.Overlay && <seq.Overlay lang={lang} />}
-          {seq.showTitle && (
-            <SectionTitle
-              title={c.title}
-              subtitle={c.subtitle}
-              displayFont={displayFont}
-              bodyFont={bodyFont}
-            />
-          )}
-          {line && (
-            <SubtitleOverlay
-              words={line.words}
-              lineStartTime={line.startTime}
-              fontFamily={bodyFont}
-            />
-          )}
-        </Sequence>
-      );
-      t += duration;
-    } else {
-      const a = audio.legacy[lineKey];
-      const duration = audio.dur(a.duration);
-
-      elements.push(
-        <Sequence key={`seq-${i}`} from={t} durationInFrames={duration}>
-          <VideoBackground
-            src={b.file}
-            startFrom={b.startFrom}
-            overlayOpacity={effectiveOpacity}
+        );
+        break;
+      }
+      case "chart":
+        body = (
+          <ChartSequence
+            lang={lang}
+            Component={seq.component}
+            line={line}
+            legacyAudio={legacyAudio}
+            fallbackText={fallbackText}
+            bodyFont={bodyFont}
           />
-          {seq.Overlay && <seq.Overlay lang={lang} />}
-          {seq.showTitle && (
-            <SectionTitle
-              title={c.title}
-              subtitle={c.subtitle}
-              displayFont={displayFont}
-              bodyFont={bodyFont}
-            />
-          )}
-          <NarrationAudio src={a.file} />
-          <SubtitleOverlay
-            text={c.narration[seq.lineIdx]}
-            audioDuration={a.duration}
-            fontFamily={bodyFont}
+        );
+        break;
+      case "title":
+        body = (
+          <TitleSequence
+            title={seq.usePartTitle ?? true ? c.title : (seq.title ?? "")}
+            subtitle={seq.usePartTitle ?? true ? c.subtitle : (seq.subtitle ?? "")}
+            displayFont={displayFont}
+            bodyFont={bodyFont}
+            line={line}
+            legacyAudio={legacyAudio}
+            fallbackText={fallbackText}
           />
-        </Sequence>
-      );
-      t += duration;
+        );
+        break;
+      case "quote":
+        body = (
+          <QuoteSequence
+            text={seq.text}
+            attribution={seq.attribution}
+            displayFont={displayFont}
+            bodyFont={bodyFont}
+            line={line}
+            legacyAudio={legacyAudio}
+            fallbackText={fallbackText}
+          />
+        );
+        break;
     }
+
+    elements.push(
+      <Sequence key={`seq-${i}`} from={t} durationInFrames={duration}>
+        {body}
+      </Sequence>
+    );
+    t += duration;
   }
 
   return <AbsoluteFill>{elements}</AbsoluteFill>;
