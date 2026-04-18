@@ -195,6 +195,11 @@ def fmt_ts(seconds: float) -> str:
     return f"{m}:{s:02d}"
 
 
+def _md_cell(s: str) -> str:
+    """Escape a string for safe inclusion in a markdown table cell."""
+    return s.replace("|", "\\|").replace("\r", " ").replace("\n", " ")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Fast video description via Groq vision API")
     parser.add_argument("video", help="Path to video file")
@@ -291,15 +296,16 @@ def main():
         md.append("| Time | Visual | On-screen Text | Entities |")
         md.append("|------|--------|----------------|----------|")
         for r in results:
-            visual = r["visual"].replace("|", "\\|").replace("\n", " ")
-            ocr = r["ocr_text"].replace("|", "\\|").replace("\n", " ")
-            ents = ", ".join(r["entities"])
+            visual = _md_cell(r["visual"])
+            ocr = _md_cell(r["ocr_text"])
+            ents = ", ".join(_md_cell(e) for e in r["entities"])
             md.append(f"| {fmt_ts(r['timestamp'])} | {visual} | {ocr} | {ents} |")
         md.append("")
         md.append("---")
         md.append(
             f"*Generated in {total_time:.1f}s ({t_extract:.1f}s extract + {t_api_done:.1f}s API) "
-            f"using {total_tokens} tokens across {len(results)} frames.*"
+            f"using {total_tokens} tokens across {len(results)} frames "
+            f"with {args.workers} parallel workers.*"
         )
 
         output = "\n".join(md)
