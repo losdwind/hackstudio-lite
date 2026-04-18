@@ -13,7 +13,7 @@ This channel decodes global industries from a China perspective. Not just what i
 - Remotion 4.0.448, React 19, TailwindCSS v4, TypeScript
 - TTS: MiniMax T2A v2 (speech-2.8-hd) with word-level subtitle timestamps + `voice_modify` for passionate delivery
 - Transcription: OpenAI Whisper (split long audio into ~15-min chunks, language=zh)
-- Video analysis: video-describe-fast skill — pass `--context "<what this video is about>"` to get OCR + identity inference (not just visual description). Default model: Llama 4 Scout via OpenRouter.
+- Video analysis: video-describe-fast skill — pass `--context "<what this video is about>"` to get OCR + identity inference (not just visual description). Default model: Gemini 3.1 Flash Lite via OpenRouter (fast, cheap, excellent Chinese OCR).
 - Design system: `design.md` — "Precision Editorial" rules (MUST follow for ALL components)
 
 ## Design System Compliance (NON-NEGOTIABLE)
@@ -114,7 +114,7 @@ Phase 2: Script
 
 Phase 3: B-Roll Sourcing
   → Browse official YouTube/Bilibili channels (NEVER generic search)
-  → Download with yt-dlp, analyze with video-describe-fast (use Llama 4 Scout model)
+  → Download with yt-dlp, analyze with video-describe-fast (default Gemini 3.1 Flash Lite)
   → Save .analysis.md files BESIDE each video file in public/<slug>/videos/
   → Create broll-manifest.ts following the B-Roll Allocation Rules below
   → Place videos in public/<slug>/videos/

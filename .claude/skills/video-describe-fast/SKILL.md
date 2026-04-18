@@ -55,15 +55,18 @@ OPENROUTER_API_KEY="sk-or-..." python3 .claude/skills/video-describe-fast/descri
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENROUTER_API_KEY` | Yes | — | OpenRouter API key (`sk-or-...`) |
-| `VISION_MODEL` | No | `meta-llama/llama-4-scout-17b-16e-instruct` | Vision model to use |
+| `VISION_MODEL` | No | `google/gemini-3.1-flash-lite-preview` | Vision model to use |
 | `VISION_API_URL` | No | `https://openrouter.ai/api/v1/chat/completions` | API endpoint |
 | `VISION_MAX_WORKERS` | No | `10` | Parallel request count |
 
 ## Changing the model
 
-The default model is `meta-llama/llama-4-scout-17b-16e-instruct` (clean JSON output, handles OCR well in Chinese + English). Override via env var or `--model` flag:
+The default model is `google/gemini-3.1-flash-lite-preview` (fast, cheap, excellent Chinese OCR, tolerant of context injection). Override via env var or `--model` flag:
 
 ```bash
+# Use Llama 4 Scout (slower but slightly richer entity inference on some content)
+VISION_MODEL="meta-llama/llama-4-scout-17b-16e-instruct" python3 .claude/skills/video-describe-fast/describe.py video.mp4
+
 # Fall back to Qwen 3.5 9B (cheaper but produces shallower OCR and can leak chain-of-thought)
 VISION_MODEL="qwen/qwen3.5-9b" python3 .claude/skills/video-describe-fast/describe.py video.mp4
 ```
