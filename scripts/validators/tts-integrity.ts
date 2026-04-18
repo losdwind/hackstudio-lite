@@ -52,11 +52,15 @@ for (const lang of Object.keys(alignmentManifest)) {
       console.log(`  ⚠️  ${lang}/${partKey}: alignment says ${part.totalDuration}s but file is ${actualDur.toFixed(2)}s`);
     }
 
+    // Truncation detection: extract the very last 200ms (the file's literal end).
+    // A clean TTS file ends in silence (≤0.08 amp). If the last 200ms is loud,
+    // the audio was cut mid-word. We use 200ms (not 500ms) so we don't catch
+    // the natural tail of the final spoken word — only the silence after it.
     const tmp = `/tmp/vv-${lang}-${partKey}-tail.raw`;
     try {
       execFileSync("ffmpeg",
-        ["-y", "-ss", String(Math.max(0, actualDur - 0.5)), "-i", audioPath,
-         "-t", "0.5", "-f", "s16le", "-ac", "1", "-ar", "22050", tmp],
+        ["-y", "-ss", String(Math.max(0, actualDur - 0.2)), "-i", audioPath,
+         "-t", "0.2", "-f", "s16le", "-ac", "1", "-ar", "22050", tmp],
         { stdio: ["ignore", "ignore", "ignore"] }
       );
       const buf = await fs.readFile(tmp);
@@ -69,7 +73,7 @@ for (const lang of Object.keys(alignmentManifest)) {
       await fs.unlink(tmp).catch(() => {});
 
       if (maxAmpNorm > 0.08) {
-        console.log(`  🔴 ${lang}/${partKey}: final 500ms max amplitude ${maxAmpNorm.toFixed(3)} — likely truncated (expected < 0.08)`);
+        console.log(`  🔴 ${lang}/${partKey}: final 200ms max amplitude ${maxAmpNorm.toFixed(3)} — likely truncated (expected < 0.08)`);
         issues++;
       } else {
         console.log(`  ✅ ${lang}/${partKey}: ${actualDur.toFixed(1)}s, tail amp ${maxAmpNorm.toFixed(3)}`);
