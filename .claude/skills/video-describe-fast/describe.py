@@ -52,17 +52,37 @@ def get_duration(video_path: str) -> float:
 def describe_frame(path: str, timestamp: float, context: str = "") -> dict:
     img_b64 = b64encode(open(path, "rb").read()).decode()
 
+    system_prompt = (
+        "You analyze video frames and return STRICT JSON only. "
+        "Never include commentary, markdown fences, or explanations — just JSON."
+    )
+    user_prompt = (
+        f"Video context: {context}\n\n" if context else ""
+    ) + (
+        "Analyze this frame and return a JSON object with exactly these keys:\n"
+        '  "visual": 1 sentence describing the scene (who/what/where).\n'
+        '  "ocr_text": all legible on-screen text, captions, subtitles, lower-thirds, '
+        "signs, UI labels. Use original language. If nothing legible, return \"\".\n"
+        '  "entities": array of named people/brands/places that can be identified '
+        "(combining visual cues + ocr_text + the video context). Empty array if uncertain.\n\n"
+        'Example: {"visual":"A man in a dark suit speaks at a podium.","ocr_text":"雷军 小米SU7","entities":["Lei Jun","Xiaomi SU7"]}'
+    )
+
     payload = json.dumps({
         "model": MODEL,
-        "messages": [{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "Describe this video frame in 1-2 concise sentences. Just the description, nothing else."},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
-            ],
-        }],
-        "max_tokens": 150,
-        "temperature": 0.3,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}},
+                ],
+            },
+        ],
+        "max_tokens": 400,
+        "temperature": 0.2,
+        "response_format": {"type": "json_object"},
     }).encode()
 
     req = urllib.request.Request(API_URL, data=payload, headers={
@@ -79,19 +99,37 @@ def describe_frame(path: str, timestamp: float, context: str = "") -> dict:
             data = json.loads(resp.read())
             elapsed = time.time() - t0
             msg = data["choices"][0]["message"]
-            content = (msg.get("content") or msg.get("reasoning") or msg.get("thinking") or "").strip()
+            content = (msg.get("content") or "").strip()
             tokens = data.get("usage", {}).get("completion_tokens", 0)
-            return {"timestamp": timestamp, "elapsed": elapsed, "tokens": tokens, "description": content}
+            try:
+                parsed = json.loads(content)
+                visual = str(parsed.get("visual", "")).strip()
+                ocr_text = str(parsed.get("ocr_text", "")).strip()
+                entities = parsed.get("entities", [])
+                if not isinstance(entities, list):
+                    entities = []
+            except json.JSONDecodeError:
+                visual = content
+                ocr_text = ""
+                entities = []
+            return {
+                "timestamp": timestamp,
+                "elapsed": elapsed,
+                "tokens": tokens,
+                "visual": visual,
+                "ocr_text": ocr_text,
+                "entities": entities,
+            }
         except urllib.error.HTTPError as e:
             if e.code == 429 and attempt < max_retries - 1:
                 wait = float(e.headers.get("retry-after", 2 * (attempt + 1)))
                 time.sleep(wait)
                 continue
             elapsed = time.time() - t0
-            return {"timestamp": timestamp, "elapsed": elapsed, "tokens": 0, "description": f"(error: {e})"}
+            return {"timestamp": timestamp, "elapsed": elapsed, "tokens": 0, "visual": f"(error: {e})", "ocr_text": "", "entities": []}
         except Exception as e:
             elapsed = time.time() - t0
-            return {"timestamp": timestamp, "elapsed": elapsed, "tokens": 0, "description": f"(error: {e})"}
+            return {"timestamp": timestamp, "elapsed": elapsed, "tokens": 0, "visual": f"(error: {e})", "ocr_text": "", "entities": []}
 
 
 def summarize(descriptions: list[dict]) -> str:
