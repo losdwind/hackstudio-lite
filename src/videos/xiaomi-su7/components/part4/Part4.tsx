@@ -1,4 +1,5 @@
-import { PartRenderer, type SequenceEntry } from "../../../../shared/components/PartRenderer";
+import { PartRenderer } from "../../../../shared/components/PartRenderer";
+import type { SequenceEntry } from "../../../../shared/lib/sequence-types";
 import { getPartAudio } from "../../../../shared/lib/part-audio";
 import { SpecComparison } from "../part3/SpecComparison";
 import { PricingBalance } from "../part3/PricingBalance";
@@ -11,14 +12,14 @@ import { alignmentManifest } from "../../data/alignment-manifest";
 import { audioManifest } from "../../data/audio-manifest";
 
 const sequences: SequenceEntry[] = [
-  { type: "narration", lineIdx: 0, brollKey: "narration1", showTitle: true },
-  { type: "narration", lineIdx: 1, brollKey: "narration2" },
-  { type: "narration", lineIdx: 2, brollKey: "narration3" },
-  { type: "narration", lineIdx: 3, brollKey: "narration4", Overlay: SpecComparison, overlayOpacity: 0.85 },
-  { type: "narration", lineIdx: 4, brollKey: "narration5", Overlay: PricingBalance, overlayOpacity: 0.85 },
-  { type: "narration", lineIdx: 5, brollKey: "narration6" },
-  { type: "narration", lineIdx: 6, brollKey: "narration7", Overlay: SalesCounter, overlayOpacity: 0.8 },
-  { type: "narration", lineIdx: 7, brollKey: "narration8" },
+  { kind: "title", lineIdx: 0 },
+  { kind: "video", lineIdx: 1, brollKey: "narration2" },
+  { kind: "video", lineIdx: 2, brollKey: "narration3" },
+  { kind: "chart", lineIdx: 3, component: SpecComparison },
+  { kind: "chart", lineIdx: 4, component: PricingBalance },
+  { kind: "video", lineIdx: 5, brollKey: "narration6" },
+  { kind: "chart", lineIdx: 6, component: SalesCounter },
+  { kind: "video", lineIdx: 7, brollKey: "narration8" },
 ];
 
 export const Part4: React.FC<{ lang: Lang }> = ({ lang }) => {

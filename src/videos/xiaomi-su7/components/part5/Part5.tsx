@@ -1,4 +1,5 @@
-import { PartRenderer, type SequenceEntry } from "../../../../shared/components/PartRenderer";
+import { PartRenderer } from "../../../../shared/components/PartRenderer";
+import type { SequenceEntry } from "../../../../shared/lib/sequence-types";
 import { getPartAudio } from "../../../../shared/lib/part-audio";
 import { EcosystemDiagram } from "../part4/EcosystemDiagram";
 import { EndingSubtitles } from "../part4/EndingSubtitles";
@@ -10,14 +11,14 @@ import { alignmentManifest } from "../../data/alignment-manifest";
 import { audioManifest } from "../../data/audio-manifest";
 
 const sequences: SequenceEntry[] = [
-  { type: "narration", lineIdx: 0, brollKey: "narration1", showTitle: true },
-  { type: "narration", lineIdx: 1, brollKey: "narration2", Overlay: EcosystemDiagram, overlayOpacity: 0.85 },
-  { type: "narration", lineIdx: 2, brollKey: "narration3" },
-  { type: "narration", lineIdx: 3, brollKey: "narration4" },
-  { type: "narration", lineIdx: 4, brollKey: "narration5" },
-  { type: "narration", lineIdx: 5, brollKey: "narration6" },
-  { type: "narration", lineIdx: 6, brollKey: "narration7" },
-  { type: "ending", brollKey: "ending", Overlay: EndingSubtitles, overlayOpacity: 0.75 },
+  { kind: "title", lineIdx: 0 },
+  { kind: "chart", lineIdx: 1, component: EcosystemDiagram },
+  { kind: "video", lineIdx: 2, brollKey: "narration3" },
+  { kind: "video", lineIdx: 3, brollKey: "narration4" },
+  { kind: "video", lineIdx: 4, brollKey: "narration5" },
+  { kind: "video", lineIdx: 5, brollKey: "narration6" },
+  { kind: "video", lineIdx: 6, brollKey: "narration7" },
+  { kind: "ending", brollKey: "ending", component: EndingSubtitles },
 ];
 
 export const Part5: React.FC<{ lang: Lang }> = ({ lang }) => {
