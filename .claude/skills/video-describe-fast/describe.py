@@ -49,6 +49,22 @@ def get_duration(video_path: str) -> float:
     return float(r.stdout.strip())
 
 
+def _strip_json_fence(s: str) -> str:
+    """Strip optional ```json ... ``` or ``` ... ``` markdown fence wrapping."""
+    stripped = s.strip()
+    if not stripped.startswith("```"):
+        return stripped
+    # Drop the opening fence line (may be ```json or just ```)
+    if "\n" in stripped:
+        stripped = stripped.split("\n", 1)[1]
+    else:
+        stripped = stripped[3:]
+    # Drop trailing ``` if present
+    if stripped.rstrip().endswith("```"):
+        stripped = stripped.rstrip()[:-3].rstrip()
+    return stripped
+
+
 def describe_frame(path: str, timestamp: float, context: str = "") -> dict:
     img_b64 = b64encode(open(path, "rb").read()).decode()
 
@@ -101,14 +117,19 @@ def describe_frame(path: str, timestamp: float, context: str = "") -> dict:
             msg = data["choices"][0]["message"]
             content = (msg.get("content") or "").strip()
             tokens = data.get("usage", {}).get("completion_tokens", 0)
+            # Fallback: not all OpenRouter-proxied models honor response_format={"type":"json_object"}.
+            # Strip optional ```json fence, guard against non-dict JSON, and coerce null-ish values.
+            json_candidate = _strip_json_fence(content)
             try:
-                parsed = json.loads(content)
-                visual = str(parsed.get("visual", "")).strip()
-                ocr_text = str(parsed.get("ocr_text", "")).strip()
-                entities = parsed.get("entities", [])
+                parsed = json.loads(json_candidate)
+                if not isinstance(parsed, dict):
+                    raise ValueError("JSON root is not an object")
+                visual = str(parsed.get("visual") or "").strip()
+                ocr_text = str(parsed.get("ocr_text") or "").strip()
+                entities = parsed.get("entities")
                 if not isinstance(entities, list):
                     entities = []
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, ValueError):
                 visual = content
                 ocr_text = ""
                 entities = []
