@@ -22,7 +22,7 @@ from pathlib import Path
 
 API_KEY = os.getenv("API_KEY", "") or os.getenv("OPENROUTER_API_KEY", "")
 API_URL = os.getenv("VISION_API_URL", "https://openrouter.ai/api/v1/chat/completions")
-MODEL = os.getenv("VISION_MODEL", "qwen/qwen3.5-9b")
+MODEL = os.getenv("VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 MAX_WORKERS = int(os.getenv("VISION_MAX_WORKERS", "10"))
 
 
@@ -49,7 +49,7 @@ def get_duration(video_path: str) -> float:
     return float(r.stdout.strip())
 
 
-def describe_frame(path: str, timestamp: float) -> dict:
+def describe_frame(path: str, timestamp: float, context: str = "") -> dict:
     img_b64 = b64encode(open(path, "rb").read()).decode()
 
     payload = json.dumps({
@@ -133,6 +133,11 @@ def main():
     parser.add_argument("--output", "-o", help="Save markdown to file (default: stdout)")
     parser.add_argument("--model", default=MODEL, help=f"Groq vision model (default: {MODEL})")
     parser.add_argument("--workers", type=int, default=MAX_WORKERS, help=f"Parallel requests (default: {MAX_WORKERS})")
+    parser.add_argument(
+        "--context",
+        default="",
+        help="Context about the video (e.g. 'Lei Jun SU7 launch event') for identity inference",
+    )
     args = parser.parse_args()
 
     if not API_KEY:
@@ -163,7 +168,7 @@ def main():
         t_api = time.time()
         with ThreadPoolExecutor(max_workers=args.workers) as pool:
             futures = {
-                pool.submit(describe_frame, f["path"], f["timestamp"]): f
+                pool.submit(describe_frame, f["path"], f["timestamp"], args.context): f
                 for f in frames
             }
             done = 0
