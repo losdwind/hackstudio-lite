@@ -1,4 +1,5 @@
 import "./index.css";
+import { xiaomiSU7BetCompositions } from "./videos/xiaomi-su7-bet";
 
 /**
  * Root registry — each video exports its own <Folder> of compositions.
@@ -9,5 +10,5 @@ import "./index.css";
  *   3. Import and render the video's composition function here
  */
 export const RemotionRoot: React.FC = () => {
-  return <></>;
+  return <>{xiaomiSU7BetCompositions()}</>;
 };

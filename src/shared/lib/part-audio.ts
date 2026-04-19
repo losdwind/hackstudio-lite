@@ -56,9 +56,15 @@ export function getPartAudio(
         const line = alignment.lines[lineKey];
         if (!line) return PAD;
         if (nextLineKey && alignment.lines[nextLineKey]) {
-          return Math.ceil(
-            (alignment.lines[nextLineKey].startTime - line.startTime) * FPS
-          );
+          // Prefer silencedetect-anchored boundary when present (written by
+          // scripts/align-boundaries.ts). Fall back to midpoint of the
+          // speech gap reported by MiniMax's word timestamps. Last fallback
+          // is nextLine.startTime (pre-silencedetect behavior).
+          const nextLine = alignment.lines[nextLineKey];
+          const boundary =
+            line.boundaryEnd ??
+            (line.endTime + nextLine.startTime) / 2;
+          return Math.ceil((boundary - line.startTime) * FPS);
         }
         return (
           Math.ceil((alignment.totalDuration - line.startTime) * FPS) + PAD

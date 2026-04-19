@@ -130,18 +130,11 @@ const VOICE_MODIFY = {
   timbre: 5,
 };
 
-// MiniMax static-silence markers. Inserted after sentence-final punctuation
-// (mid-line) and as the separator between narration lines.
-// 0.4s = comfortable end-of-sentence breath; 0.7s = paragraph-level beat.
-const PAUSE_INTRA = "<#0.4#>";
-const PAUSE_INTER = "<#0.7#>";
-
-function injectPauses(text: string, isChinese: boolean): string {
-  if (isChinese) {
-    return text.replace(/([。！？])(?=.)/g, `$1${PAUSE_INTRA}`);
-  }
-  return text.replace(/([.!?])(?=\s+\S)/g, `$1${PAUSE_INTRA}`);
-}
+// No pause markers. Forcing <#X#> after every period flattens prosody to a
+// uniform beat and overrides MiniMax's learned breath patterns. Instead we
+// feed clean punctuated text and let the model pace naturally; the real
+// physical silences it produces are then mapped to sequence boundaries by
+// scripts/align-boundaries.ts (silencedetect).
 
 const AUDIO_SETTING = {
   sample_rate: 32_000,
@@ -469,13 +462,15 @@ for (const lang of langsToGenerate) {
 type Task = {
   lang: LangKey;
   partKey: PartKey;
-  rawLines: string[];   // marker-free, used for chunk→line char-position math
-  fullText: string;     // with pause markers, sent to MiniMax
+  rawLines: string[];   // marker-free; matches what's sent verbatim
+  fullText: string;     // lines joined with the same separator mapChunksToLines assumes
   lineCount: number;
 };
 const tasks: Task[] = [];
 for (const lang of langsToGenerate) {
   const isChinese = lang === "cn";
+  // Separator must match the one in mapChunksToLines so character offsets line up.
+  const separator = isChinese ? "" : " ";
   for (const partKey of partsToGenerate) {
     const partContent = contentMap[lang][partKey];
     if (!partContent) {
@@ -483,13 +478,11 @@ for (const lang of langsToGenerate) {
       continue;
     }
     const rawLines = partContent.narration;
-    const augmented = rawLines.map((l) => injectPauses(l, isChinese));
-    const separator = isChinese ? PAUSE_INTER : ` ${PAUSE_INTER} `;
     tasks.push({
       lang,
       partKey,
       rawLines,
-      fullText: augmented.join(separator),
+      fullText: rawLines.join(separator),
       lineCount: rawLines.length,
     });
   }

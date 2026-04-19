@@ -5,11 +5,14 @@ import type { WordTiming } from "../lib/alignment-types";
 
 // Max chars per displayed caption chunk. Chosen so a chunk always fits on one
 // line at fontSize 40 inside the 1400px container (CJK glyphs ~42px wide,
-// Latin avg ~18px). MiniMax's "word" entries for Chinese are often whole
-// sentences, so we re-chunk at punctuation and redistribute timing.
-const MAX_CJK_CHARS = 18;
-const MAX_LATIN_CHARS = 48;
-const PUNCT_SPLIT_RE = /([，。、；：！？,.!?;:\n]+)/g;
+// Latin avg ~18px). whisper-align.ts now emits sentence-level WordTimings,
+// so most chunks already fit; this is only a safety net for overlong
+// sentences which are split at comma (not terminal punct).
+const MAX_CJK_CHARS = 28;
+const MAX_LATIN_CHARS = 72;
+// Only split at commas / semicolons / colons — NOT at sentence-ending
+// punctuation, so sentence-level WordTimings from whisper-align stay whole.
+const PUNCT_SPLIT_RE = /([，、；：,;:\n]+)/g;
 
 function splitWordIntoChunks(word: WordTiming): WordTiming[] {
   const text = word.text;

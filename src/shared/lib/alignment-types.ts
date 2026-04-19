@@ -18,6 +18,13 @@ export interface LineTiming {
   endTime: number;
   /** Word-level timestamps for caption highlighting */
   words: WordTiming[];
+  /**
+   * Optional: where this line's sequence should actually cut off (seconds).
+   * Populated by scripts/align-boundaries.ts via ffmpeg silencedetect — the
+   * midpoint of the physical silence immediately following this line.
+   * Absent for the last line of a part (use totalDuration instead).
+   */
+  boundaryEnd?: number;
 }
 
 export interface PartAlignment {

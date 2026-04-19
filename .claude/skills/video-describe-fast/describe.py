@@ -22,7 +22,7 @@ from pathlib import Path
 
 API_KEY = os.getenv("API_KEY", "") or os.getenv("OPENROUTER_API_KEY", "")
 API_URL = os.getenv("VISION_API_URL", "https://openrouter.ai/api/v1/chat/completions")
-MODEL = os.getenv("VISION_MODEL", "google/gemini-3.1-flash-lite-preview")
+MODEL = os.getenv("VISION_MODEL", "google/gemma-3-27b-it")
 MAX_WORKERS = int(os.getenv("VISION_MAX_WORKERS", "10"))
 
 

@@ -55,21 +55,31 @@ OPENROUTER_API_KEY="sk-or-..." python3 .claude/skills/video-describe-fast/descri
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENROUTER_API_KEY` | Yes | — | OpenRouter API key (`sk-or-...`) |
-| `VISION_MODEL` | No | `google/gemini-3.1-flash-lite-preview` | Vision model to use |
+| `VISION_MODEL` | No | `google/gemma-3-27b-it` | Vision model to use |
 | `VISION_API_URL` | No | `https://openrouter.ai/api/v1/chat/completions` | API endpoint |
 | `VISION_MAX_WORKERS` | No | `10` | Parallel request count |
 
 ## Changing the model
 
-The default model is `google/gemini-3.1-flash-lite-preview` (fast, cheap, excellent Chinese OCR, tolerant of context injection). Override via env var or `--model` flag:
+Default is `google/gemma-3-27b-it` — $0.08 / $0.16 per Mtok, ~$0.00006 per frame. In our A/B (2026-04-19) it was the cheapest model that stayed accurate AND didn't hallucinate entities from the `--context` prompt. Override via env var or `--model` flag:
 
 ```bash
-# Use Llama 4 Scout (slower but slightly richer entity inference on some content)
-VISION_MODEL="meta-llama/llama-4-scout-17b-16e-instruct" python3 .claude/skills/video-describe-fast/describe.py video.mp4
+# Google Gemini 3.1 Flash Lite — accurate, often free during preview but preview ends
+VISION_MODEL="google/gemini-3.1-flash-lite-preview" python3 .claude/skills/video-describe-fast/describe.py video.mp4
 
-# Fall back to Qwen 3.5 9B (cheaper but produces shallower OCR and can leak chain-of-thought)
-VISION_MODEL="qwen/qwen3.5-9b" python3 .claude/skills/video-describe-fast/describe.py video.mp4
+# Meta Llama 4 Scout — richer entity inference, higher cost per frame
+VISION_MODEL="meta-llama/llama-4-scout" python3 .claude/skills/video-describe-fast/describe.py video.mp4
 ```
+
+## Models to avoid
+
+Validated 2026-04-19 with an A/B harness on the same 106-sec sample:
+
+| Model | Why not |
+|-------|---------|
+| `mistralai/mistral-small-3.2-24b-instruct` | Fabricates people/events to match `--context` (hallucinated "Lei Jun at Xiaomi podium" on an Apple classroom ad) |
+| `amazon/nova-lite-v1` | Also confabulates to match context; weak entity extraction |
+| `qwen/qwen3.5-9b` | API advertises image input, but returns null on every frame — not actually a vision model on OpenRouter |
 
 ## Performance
 
